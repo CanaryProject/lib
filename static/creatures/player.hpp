@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_STATIC_PLAYER_H
-#define CANARY_LIB_STATIC_PLAYER_H
+#ifndef CANARY_LIB_STATIC_CREATURES_PLAYER_H
+#define CANARY_LIB_STATIC_CREATURES_PLAYER_H
 
 #include "../pch.hpp"
 
@@ -27,16 +27,16 @@
 *****************************/
 // TODO: join skills and special skills
 enum skills_t : uint8_t {
-	SKILL_FIST = 0,
-	SKILL_CLUB = 1,
-	SKILL_SWORD = 2,
-	SKILL_AXE = 3,
-	SKILL_DISTANCE = 4,
-	SKILL_SHIELD = 5,
-	SKILL_FISHING = 6,
+	SKILL_FIST,
+	SKILL_CLUB,
+	SKILL_SWORD,
+	SKILL_AXE,
+	SKILL_DISTANCE,
+	SKILL_SHIELD,
+	SKILL_FISHING,
 
-	SKILL_MAGLEVEL = 7,
-	SKILL_LEVEL = 8,
+	SKILL_MAGLEVEL,
+	SKILL_LEVEL,
 
 	SKILL_FIRST = SKILL_FIST,
 	SKILL_LAST = SKILL_FISHING
@@ -55,9 +55,9 @@ enum SpecialSkills_t : uint8_t {
 };
 
 enum VipStatus_t : uint8_t {
-	VIPSTATUS_OFFLINE = 0,
-	VIPSTATUS_ONLINE = 1,
-	VIPSTATUS_PENDING = 2
+	VIPSTATUS_OFFLINE,
+	VIPSTATUS_ONLINE,
+	VIPSTATUS_PENDING
 };
 
 #endif

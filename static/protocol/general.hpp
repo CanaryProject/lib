@@ -17,9 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_INCLUDE_H
-#define CANARY_LIB_INCLUDE_H
+#ifndef CANARY_LIB_STATIC_PROTOCOL_GENERAL_H
+#define CANARY_LIB_STATIC_PROTOCOL_GENERAL_H
 
-#include "static/index.hpp"
+#include "../pch.hpp"
+
+/*****************************
+********* Enums
+*****************************/
+namespace CanaryLib {
+	enum LoginServerOpts {
+		LoginServerError = 0xA,
+		LoginServerMotd = 0x14,
+		LoginServerUpdateNeeded = 0x1E,
+		LoginServerCharacterList = 0x64
+	};
+
+	enum ItemOpcode {
+		StaticText = 0x60,
+		UnknownCreature = 0x61,
+		OutdatedCreature = 0x62,
+		Creature = 0x63
+	};
+}
 
 #endif

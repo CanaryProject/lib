@@ -20,12 +20,11 @@
 #ifndef CANARY_LIB_STATIC_INDEX_H
 #define CANARY_LIB_STATIC_INDEX_H
 
-#include "creature.hpp"
-#include "fluid.hpp"
-#include "global.hpp"
-#include "graphical.hpp"
-#include "market.hpp"
-#include "message.hpp"
-#include "player.hpp"
+#include "creatures/index.hpp"
+#include "global/index.hpp"
+#include "items/index.hpp"
+#include "protocol/index.hpp"
+
+#include "pch.hpp"
 
 #endif

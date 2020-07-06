@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_INCLUDE_H
-#define CANARY_LIB_INCLUDE_H
+#ifndef CANARY_LIB_STATIC_ITEMS_INDEX_H
+#define CANARY_LIB_STATIC_ITEMS_INDEX_H
 
-#include "static/index.hpp"
+#include "fluid.hpp"
+#include "market.hpp"
 
 #endif

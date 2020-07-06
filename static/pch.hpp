@@ -17,9 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_INCLUDE_H
-#define CANARY_LIB_INCLUDE_H
+#ifndef CANARY_LIB_STATIC_PCH_H
+#define CANARY_LIB_STATIC_PCH_H
 
-#include "static/index.hpp"
+// common C headers
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+// common STL headers
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <deque>
+#include <forward_list>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <typeinfo>
+#include <unordered_map>
+#include <vector>
 
 #endif

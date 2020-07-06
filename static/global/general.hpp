@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_STATIC_GLOBAL_H
-#define CANARY_LIB_STATIC_GLOBAL_H
+#ifndef CANARY_LIB_STATIC_GLOBAL_GENERAL_H
+#define CANARY_LIB_STATIC_GLOBAL_GENERAL_H
 
 #include "../pch.hpp"
 
@@ -56,11 +56,11 @@ enum OperatingSystem_t : uint8_t {
 };
 
 enum SpellGroup_t : uint8_t {
-	SPELLGROUP_NONE = 0,
-	SPELLGROUP_ATTACK = 1,
-	SPELLGROUP_HEALING = 2,
-	SPELLGROUP_SUPPORT = 3,
-	SPELLGROUP_SPECIAL = 4,
+	SPELLGROUP_NONE,
+	SPELLGROUP_ATTACK,
+	SPELLGROUP_HEALING,
+	SPELLGROUP_SUPPORT,
+	SPELLGROUP_SPECIAL,
 };
 
 enum ThreadState : uint8_t {
