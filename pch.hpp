@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef PCH_H
-#define PCH_H
+#ifndef CANARY_LIB_PCH_H
+#define CANARY_LIB_PCH_H
 
 // common C headers
 #include <cassert>
