@@ -21,6 +21,7 @@
 #define CANARY_LIB_CONST_H
 
 // TODO: Unify message enums
+//  toClient message functions protocolgame.h
 enum MessageMode {
 	MessageNone = 0,
 	MessageSay = 1,
@@ -91,6 +92,8 @@ enum FluidColors_t {
 	FLUID_PURPLE,
 };
 
+// TODO: unify fluids
+// 	toClient fluids function tools.h
 // enum FluidTypes_t {
 // 	FLUID_NONE,
 // 	FLUID_WATER,
@@ -115,9 +118,8 @@ enum FluidColors_t {
 // 	FLUID_SWAMP
 // };
 
-// TODO: change square to use this
-// TODO: change T.extColor_t to Color
-enum Color {
+enum Color_t {
+	COLOR_BLACK = 0,
 	COLOR_BLUE = 5,
 	COLOR_LIGHTGREEN = 30,
 	COLOR_LIGHTBLUE = 35,
