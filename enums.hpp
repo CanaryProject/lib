@@ -20,28 +20,19 @@
 #ifndef CANARY_LIB_ENUMS_H
 #define CANARY_LIB_ENUMS_H
 
-#include "pch.h"
+#include "pch.hpp"
 
-enum ThreadState {
-	THREAD_STATE_RUNNING,
-	THREAD_STATE_CLOSING,
-	THREAD_STATE_TERMINATED,
-};
-
-enum VipStatus_t {
-	VIPSTATUS_OFFLINE = 0,
-	VIPSTATUS_ONLINE = 1,
-	VIPSTATUS_PENDING = 2
-};
-
-enum ChannelEvent_t {
+/*****************************
+** Enums
+*****************************/
+enum ChannelEvent_t : uint8_t {
 	CHANNELEVENT_JOIN = 0,
 	CHANNELEVENT_LEAVE = 1,
 	CHANNELEVENT_INVITE = 2,
 	CHANNELEVENT_EXCLUDE = 3,
 };
 
-enum CreatureType_t {
+enum CreatureType_t : uint8_t {
 	CREATURETYPE_PLAYER = 0,
 	CREATURETYPE_MONSTER = 1,
 	CREATURETYPE_NPC = 2,
@@ -50,7 +41,44 @@ enum CreatureType_t {
 	CREATURETYPE_HIDDEN = 5,
 };
 
-enum OperatingSystem_t {
+enum MapMark_t : uint8_t {
+	MAPMARK_TICK = 0,
+	MAPMARK_QUESTION = 1,
+	MAPMARK_EXCLAMATION = 2,
+	MAPMARK_STAR = 3,
+	MAPMARK_CROSS = 4,
+	MAPMARK_TEMPLE = 5,
+	MAPMARK_KISS = 6,
+	MAPMARK_SHOVEL = 7,
+	MAPMARK_SWORD = 8,
+	MAPMARK_FLAG = 9,
+	MAPMARK_LOCK = 10,
+	MAPMARK_BAG = 11,
+	MAPMARK_SKULL = 12,
+	MAPMARK_DOLLAR = 13,
+	MAPMARK_REDNORTH = 14,
+	MAPMARK_REDSOUTH = 15,
+	MAPMARK_REDEAST = 16,
+	MAPMARK_REDWEST = 17,
+	MAPMARK_GREENNORTH = 18,
+	MAPMARK_GREENSOUTH = 19,
+};
+
+enum MarketAction_t : uint8_t {
+	MARKETACTION_BUY = 0,
+	MARKETACTION_SELL = 1,
+};
+
+enum MarketOfferState_t : uint8_t {
+	OFFERSTATE_ACTIVE = 0,
+	OFFERSTATE_CANCELLED = 1,
+	OFFERSTATE_EXPIRED = 2,
+	OFFERSTATE_ACCEPTED = 3,
+
+	OFFERSTATE_ACCEPTEDEX = 255,
+};
+
+enum OperatingSystem_t : uint8_t {
 	CLIENTOS_NONE = 0,
 
 	CLIENTOS_LINUX = 1,
@@ -80,16 +108,8 @@ enum OperatingSystem_t {
 	CLIENTOS_TFC_UNIX = 112,
 };
 
-enum SpellGroup_t {
-	SPELLGROUP_NONE = 0,
-	SPELLGROUP_ATTACK = 1,
-	SPELLGROUP_HEALING = 2,
-	SPELLGROUP_SUPPORT = 3,
-	SPELLGROUP_SPECIAL = 4,
-};
-
 // TODO: join skills and special skills
-enum skills_t {
+enum skills_t : uint8_t {
 	SKILL_FIST = 0,
 	SKILL_CLUB = 1,
 	SKILL_SWORD = 2,
@@ -105,7 +125,7 @@ enum skills_t {
 	SKILL_LAST = SKILL_FISHING
 };
 
-enum SpecialSkills_t {
+enum SpecialSkills_t : uint8_t {
 	SPECIALSKILL_CRITICALHITCHANCE,
 	SPECIALSKILL_CRITICALHITAMOUNT,
 	SPECIALSKILL_LIFELEECHCHANCE,
@@ -117,9 +137,8 @@ enum SpecialSkills_t {
 	SPECIALSKILL_LAST = SPECIALSKILL_MANALEECHAMOUNT
 };
 
-// Creature icons on otclient
-enum SpeechBubble_t
-{
+// TODO: Creature icons on otclient
+enum SpeechBubble_t : uint8_t {
 	SPEECHBUBBLE_NONE = 0,
 	SPEECHBUBBLE_NORMAL = 1,
 	SPEECHBUBBLE_TRADE = 2,
@@ -127,53 +146,35 @@ enum SpeechBubble_t
 	SPEECHBUBBLE_QUESTTRADER = 4,
 };
 
-enum MapMark_t
-{
-	MAPMARK_TICK = 0,
-	MAPMARK_QUESTION = 1,
-	MAPMARK_EXCLAMATION = 2,
-	MAPMARK_STAR = 3,
-	MAPMARK_CROSS = 4,
-	MAPMARK_TEMPLE = 5,
-	MAPMARK_KISS = 6,
-	MAPMARK_SHOVEL = 7,
-	MAPMARK_SWORD = 8,
-	MAPMARK_FLAG = 9,
-	MAPMARK_LOCK = 10,
-	MAPMARK_BAG = 11,
-	MAPMARK_SKULL = 12,
-	MAPMARK_DOLLAR = 13,
-	MAPMARK_REDNORTH = 14,
-	MAPMARK_REDSOUTH = 15,
-	MAPMARK_REDEAST = 16,
-	MAPMARK_REDWEST = 17,
-	MAPMARK_GREENNORTH = 18,
-	MAPMARK_GREENSOUTH = 19,
+enum SpellGroup_t : uint8_t {
+	SPELLGROUP_NONE = 0,
+	SPELLGROUP_ATTACK = 1,
+	SPELLGROUP_HEALING = 2,
+	SPELLGROUP_SUPPORT = 3,
+	SPELLGROUP_SPECIAL = 4,
 };
 
-enum MarketAction_t {
-	MARKETACTION_BUY = 0,
-	MARKETACTION_SELL = 1,
+enum ThreadState : uint8_t {
+	THREAD_STATE_RUNNING,
+	THREAD_STATE_CLOSING,
+	THREAD_STATE_TERMINATED,
 };
 
-enum MarketOfferState_t {
-	OFFERSTATE_ACTIVE = 0,
-	OFFERSTATE_CANCELLED = 1,
-	OFFERSTATE_EXPIRED = 2,
-	OFFERSTATE_ACCEPTED = 3,
-
-	OFFERSTATE_ACCEPTEDEX = 255,
+enum VipStatus_t : uint8_t {
+	VIPSTATUS_OFFLINE = 0,
+	VIPSTATUS_ONLINE = 1,
+	VIPSTATUS_PENDING = 2
 };
 
-struct Outfit_t {
-	uint16_t lookTypeEx = 0;
-	uint16_t lookMount = 0;
-	uint16_t lookType = 0;
-	uint8_t lookHead = 0;
-	uint8_t lookBody = 0;
-	uint8_t lookLegs = 0;
-	uint8_t lookFeet = 0;
-	uint8_t lookAddons = 0;
+/*****************************
+** Structs
+*****************************/
+struct HistoryMarketOffer {
+	uint32_t timestamp;
+	uint32_t price;
+	uint16_t itemId;
+	uint16_t amount;
+	MarketOfferState_t state;
 };
 
 struct LightInfo {
@@ -181,24 +182,6 @@ struct LightInfo {
 	uint8_t color = 0;
 	constexpr LightInfo() = default;
 	constexpr LightInfo(uint8_t level, uint8_t color) : level(level), color(color) {}
-};
-
-struct ShopInfo {
-	uint16_t itemId;
-	int32_t subType;
-	uint32_t buyPrice;
-	uint32_t sellPrice;
-	std::string realName;
-
-	ShopInfo() {
-		itemId = 0;
-		subType = 1;
-		buyPrice = 0;
-		sellPrice = 0;
-	}
-
-	ShopInfo(uint16_t itemId, int32_t subType = 0, uint32_t buyPrice = 0, uint32_t sellPrice = 0, std::string realName = "")
-		: itemId(itemId), subType(subType), buyPrice(buyPrice), sellPrice(sellPrice), realName(std::move(realName)) {}
 };
 
 struct MarketOffer {
@@ -228,14 +211,6 @@ struct MarketOfferEx {
 	std::string playerName;
 };
 
-struct HistoryMarketOffer {
-	uint32_t timestamp;
-	uint32_t price;
-	uint16_t itemId;
-	uint16_t amount;
-	MarketOfferState_t state;
-};
-
 struct MarketStatistics {
 	MarketStatistics() {
 		numTransactions = 0;
@@ -262,8 +237,40 @@ struct ModalWindow
 		: title(std::move(title)), message(std::move(message)), id(id), defaultEnterButton(0xFF), defaultEscapeButton(0xFF), priority(false) {}
 };
 
-using MarketOfferList = std::list<MarketOffer>;
+struct Outfit_t {
+	uint16_t lookTypeEx = 0;
+	uint16_t lookMount = 0;
+	uint16_t lookType = 0;
+	uint8_t lookHead = 0;
+	uint8_t lookBody = 0;
+	uint8_t lookLegs = 0;
+	uint8_t lookFeet = 0;
+	uint8_t lookAddons = 0;
+};
+
+struct ShopInfo {
+	uint16_t itemId;
+	int32_t subType;
+	uint32_t buyPrice;
+	uint32_t sellPrice;
+	std::string realName;
+
+	ShopInfo() {
+		itemId = 0;
+		subType = 1;
+		buyPrice = 0;
+		sellPrice = 0;
+	}
+
+	ShopInfo(uint16_t itemId, int32_t subType = 0, uint32_t buyPrice = 0, uint32_t sellPrice = 0, std::string realName = "")
+		: itemId(itemId), subType(subType), buyPrice(buyPrice), sellPrice(sellPrice), realName(std::move(realName)) {}
+};
+
+/*****************************
+** Macros
+*****************************/
 using HistoryMarketOfferList = std::list<HistoryMarketOffer>;
+using MarketOfferList = std::list<MarketOffer>;
 using ShopInfoList = std::vector<ShopInfo>;
 
 #endif
