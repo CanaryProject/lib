@@ -17,94 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_CONST_H
-#define CANARY_LIB_CONST_H
+#ifndef CANARY_LIB_STATIC_MESSAGE_H
+#define CANARY_LIB_STATIC_MESSAGE_H
 
-#include "pch.hpp"
+#include "../pch.hpp"
 
-enum Color_t : uint8_t {
-	COLOR_BLACK = 0,
-	COLOR_BLUE = 5,
-	COLOR_LIGHTGREEN = 30,
-	COLOR_LIGHTBLUE = 35,
-	COLOR_MAYABLUE = 95,
-	COLOR_DARKRED = 108,
-	COLOR_LIGHTGREY = 129,
-	COLOR_SKYBLUE = 143,
-	COLOR_PURPLE = 154,
-	COLOR_ELECTRICPURPLE = 155,
-	COLOR_RED = 180,
-	COLOR_PASTELRED = 194,
-	COLOR_ORANGE = 198,
-	COLOR_YELLOW = 210,
-	COLOR_WHITE_EXP = 215,
-	COLOR_NONE = 255,
-};
-
-enum FluidColors_t : uint8_t {
-	FLUID_EMPTY,
-	FLUID_BLUE,
-	FLUID_RED,
-	FLUID_BROWN,
-	FLUID_GREEN,
-	FLUID_YELLOW,
-	FLUID_WHITE,
-	FLUID_PURPLE,
-};
-
-// TODO: unify fluids
-// 	toClient fluids function tools.h
-// enum FluidTypes_t : uint8_t {
-// 	FLUID_NONE,
-// 	FLUID_WATER,
-// 	FLUID_MANA,
-// 	FLUID_BEER,
-// 	FLUID_OIL,
-// 	FLUID_BLOOD,
-// 	FLUID_SLIME,
-// 	FLUID_MUD,
-// 	FLUID_LEMONADE,
-// 	FLUID_MILK,
-// 	FLUID_WINE,
-// 	FLUID_LIFE,
-// 	FLUID_URINE,
-// 	FLUID_RUM,
-// 	FLUID_FRUITJUICE,
-// 	FLUID_COCONUTMILK,
-// 	FLUID_TEA,
-// 	FLUID_MEAD,
-// 	FLUID_INK,
-// 	FLUID_LAVA,
-// 	FLUID_SWAMP
-// };
-
-
-enum GuildEmblems_t : uint8_t {
-	GUILDEMBLEM_NONE = 0,
-	GUILDEMBLEM_ALLY = 1,
-	GUILDEMBLEM_ENEMY = 2,
-	GUILDEMBLEM_NEUTRAL = 3,
-	GUILDEMBLEM_MEMBER = 4,
-	GUILDEMBLEM_OTHER = 5,
-};
-
-enum Icons_t : uint64_t {
-	ICON_POISON = 1 << 0,
-	ICON_BURN = 1 << 1,
-	ICON_ENERGY =  1 << 2,
-	ICON_DRUNK = 1 << 3,
-	ICON_MANASHIELD = 1 << 4,
-	ICON_PARALYZE = 1 << 5,
-	ICON_HASTE = 1 << 6,
-	ICON_SWORDS = 1 << 7,
-	ICON_DROWNING = 1 << 8,
-	ICON_FREEZING = 1 << 9,
-	ICON_DAZZLED = 1 << 10,
-	ICON_CURSED = 1 << 11,
-	ICON_PARTY_BUFF = 1 << 12,
-	ICON_REDSWORDS = 1 << 13,
-	ICON_PIGEON = 1 << 14,
-	ICON_BLEEDING = 1 << 15,
+/*****************************
+********* Enums
+*****************************/
+enum ChannelEvent_t : uint8_t {
+	CHANNELEVENT_JOIN = 0,
+	CHANNELEVENT_LEAVE = 1,
+	CHANNELEVENT_INVITE = 2,
+	CHANNELEVENT_EXCLUDE = 3,
 };
 
 // TODO: Unify message enums
@@ -166,31 +91,6 @@ enum MessageMode : uint8_t {
 	MessageNpcFromStartBlock = 51,
 	LastMessage = 52,
 	MessageInvalid = 255
-};
-
-enum PartyShields_t : uint8_t {
-	SHIELD_NONE = 0,
-	SHIELD_WHITEYELLOW = 1,
-	SHIELD_WHITEBLUE = 2,
-	SHIELD_BLUE = 3,
-	SHIELD_YELLOW = 4,
-	SHIELD_BLUE_SHAREDEXP = 5,
-	SHIELD_YELLOW_SHAREDEXP = 6,
-	SHIELD_BLUE_NOSHAREDEXP_BLINK = 7,
-	SHIELD_YELLOW_NOSHAREDEXP_BLINK = 8,
-	SHIELD_BLUE_NOSHAREDEXP = 9,
-	SHIELD_YELLOW_NOSHAREDEXP = 10,
-	SHIELD_GRAY = 11,
-};
-
-enum Skulls_t : uint8_t {
-	SKULL_NONE = 0,
-	SKULL_YELLOW = 1,
-	SKULL_GREEN = 2,
-	SKULL_WHITE = 3,
-	SKULL_RED = 4,
-	SKULL_BLACK = 5,
-	SKULL_ORANGE = 6,
 };
 
 #endif
