@@ -17,43 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_PROTOCOL_GENERAL_H
-#define CANARY_LIB_PROTOCOL_GENERAL_H
-
-#include "../pch.hpp"
+#include "general.hpp"
 
 namespace CanaryLib {
-  /*****************************
-  ********* Consts
-  *****************************/
-  static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 65500;
-  
-  using MsgSize_t = uint16_t;
-
-  // Headers:
-  // 2 bytes for unencrypted message size
-  // 4 bytes for checksum
-  // 2 bytes for encrypted message size
-  static constexpr MsgSize_t MAX_HEADER_SIZE = 8;
-
-/*****************************
-********* Enums
-*****************************/
-	enum LoginServerOpts {
-		LoginServerError = 0xA,
-		LoginServerMotd = 0x14,
-		LoginServerUpdateNeeded = 0x1E,
-		LoginServerCharacterList = 0x64
-	};
-
-	enum ItemOpcode {
-		StaticText = 0x60,
-		UnknownCreature = 0x61,
-		OutdatedCreature = 0x62,
-		Creature = 0x63
-	};
-
-  void buildMessageModesMap();
 }
-
-#endif
