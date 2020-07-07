@@ -17,37 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_STATIC_PCH_H
-#define CANARY_LIB_STATIC_PCH_H
+#ifndef CANARY_LIB_PROTOCOL_GENERAL_H
+#define CANARY_LIB_PROTOCOL_GENERAL_H
 
-// common C headers
-#include <cassert>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "../pch.hpp"
 
-// common STL headers
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <deque>
-#include <forward_list>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-#include <list>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <tuple>
-#include <typeinfo>
-#include <unordered_map>
-#include <vector>
+/*****************************
+********* Enums
+*****************************/
+namespace CanaryLib {
+	enum LoginServerOpts {
+		LoginServerError = 0xA,
+		LoginServerMotd = 0x14,
+		LoginServerUpdateNeeded = 0x1E,
+		LoginServerCharacterList = 0x64
+	};
+
+	enum ItemOpcode {
+		StaticText = 0x60,
+		UnknownCreature = 0x61,
+		OutdatedCreature = 0x62,
+		Creature = 0x63
+	};
+}
 
 #endif

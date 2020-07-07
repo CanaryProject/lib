@@ -17,11 +17,46 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_STATIC_CREATURES_INDEX_H
-#define CANARY_LIB_STATIC_CREATURES_INDEX_H
+#ifndef CANARY_LIB_CREATURES_CREATURE_H
+#define CANARY_LIB_CREATURES_CREATURE_H
 
-#include "creature.hpp"
-#include "npc.hpp"
-#include "player.hpp"
+#include "../pch.hpp"
+
+/*****************************
+********* Enums
+*****************************/
+enum CreatureType_t : uint8_t {
+	CREATURETYPE_PLAYER,
+	CREATURETYPE_MONSTER,
+	CREATURETYPE_NPC,
+	CREATURETYPE_SUMMON_OWN,
+	CREATURETYPE_SUMMON_OTHERS,
+	CREATURETYPE_HIDDEN,
+	CREATURETYPE_UNKNOWN = 0xFF,
+};
+
+enum Skulls_t : uint8_t {
+	SKULL_NONE,
+	SKULL_YELLOW,
+	SKULL_GREEN,
+	SKULL_WHITE,
+	SKULL_RED,
+	SKULL_BLACK,
+	SKULL_ORANGE,
+};
+
+/*****************************
+********* Structs
+*****************************/
+struct Outfit_t {
+	uint16_t lookTypeEx = 0;
+	uint16_t lookMount = 0;
+	uint16_t lookType = 0;
+	uint8_t lookHead = 0;
+	uint8_t lookBody = 0;
+	uint8_t lookLegs = 0;
+	uint8_t lookFeet = 0;
+	uint8_t lookAddons = 0;
+};
 
 #endif

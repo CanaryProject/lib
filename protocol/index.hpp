@@ -17,21 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_STATIC_CREATURES_NPC_H
-#define CANARY_LIB_STATIC_CREATURES_NPC_H
+#ifndef CANARY_LIB_PROTOCOL_INDEX_H
+#define CANARY_LIB_PROTOCOL_INDEX_H
 
-#include "../pch.hpp"
-
-/*****************************
-********* Enums
-*****************************/
-// TODO: Creature icons on otclient
-enum SpeechBubble_t : uint8_t {
-	SPEECHBUBBLE_NONE,
-	SPEECHBUBBLE_NORMAL,
-	SPEECHBUBBLE_TRADE,
-	SPEECHBUBBLE_QUEST,
-	SPEECHBUBBLE_QUESTTRADER,
-};
+#include "general.hpp"
+#include "client.hpp"
+#include "server.hpp"
 
 #endif

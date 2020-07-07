@@ -20,6 +20,11 @@
 #ifndef CANARY_LIB_INCLUDE_H
 #define CANARY_LIB_INCLUDE_H
 
-#include "static/index.hpp"
+#include "creatures/index.hpp"
+#include "global/index.hpp"
+#include "items/index.hpp"
+#include "protocol/index.hpp"
+
+#include "pch.hpp"
 
 #endif
