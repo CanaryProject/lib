@@ -26,7 +26,8 @@ namespace CanaryLib {
   /*****************************
   ********* Consts
   *****************************/
-  static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 65500;
+  static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 65536;
+  static constexpr int32_t MAX_STRING_LENGTH = 65536;
   
   using MsgSize_t = uint16_t;
 
