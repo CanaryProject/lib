@@ -35,10 +35,11 @@ namespace CanaryLib {
   // 2 bytes for unencrypted message size
   // 4 bytes for checksum
   // 2 bytes for encrypted message size
-  static constexpr uint8_t MAX_HEADER_SIZE = 8;
-  static constexpr uint8_t HEADER_LENGTH = 2;
   static constexpr uint8_t CHECKSUM_LENGTH = 4;
+  static constexpr uint8_t HEADER_LENGTH = 2;
+  static constexpr uint8_t MAX_HEADER_SIZE = 8;
   static constexpr uint8_t XTEA_MULTIPLE = 8;
+
   static constexpr uint8_t NON_BODY_LENGTH =
     HEADER_LENGTH + CHECKSUM_LENGTH + XTEA_MULTIPLE;
   static constexpr uint32_t MAX_BODY_LENGTH = 
@@ -70,6 +71,12 @@ namespace CanaryLib {
     bool overflow = false;
   };
 
+	enum MessageIncrementType {
+    MESSAGE_INCREMENT_BUFFER_AND_SIZE,
+    MESSAGE_INCREMENT_BUFFER,
+    MESSAGE_INCREMENT_SIZE
+	};
+
   class NetworkMessage {
     public:
       NetworkMessage() = default;
@@ -77,13 +84,13 @@ namespace CanaryLib {
         /**
          *  Getters/Setters
          **/
-      const uint8_t* getBuffer() const { 
+      uint8_t* getBuffer() { 
         return m_buffer; 
       }
       void setBuffer(const std::string& buffer);
 
       uint8_t* getBody() {
-        m_info.m_messageSize = HEADER_LENGTH;
+        m_info.m_bufferPos = HEADER_LENGTH;
         return m_buffer + HEADER_LENGTH;
       }
 
@@ -124,52 +131,52 @@ namespace CanaryLib {
       }
 
         /**
-         *  Message info manipulators
+         *  Message Read manipulators
          **/
-      void* read(const size_t size) {
-        if(!canRead(size)) {
-          return 1;
-        }
-      }
-
       template<typename T>
-      T read() {
-        if (!canRead(sizeof(T))) {
-          return 0;
+      const T read(size_t size = 0) {
+        if (size == 0) size = sizeof(T);
+
+        if(!canRead(size)) {
+          return T();
         }
 
         T value;
-        memcpy(&value, m_buffer + m_info.m_bufferPos, sizeof(T));
-        m_info.m_bufferPos += sizeof(T);
+        memcpy(&value, m_buffer + m_info.m_bufferPos, size);
+        m_info.m_bufferPos += size;
+
         return value;
       }
 
-      uint8_t readU8() {
-        return read<uint8_t>();
+      const uint8_t readByte() {
+        return unsigned(read<uint8_t>());
       }
 
-      std::string readString(uint16_t stringLen = 0) {
-        // if (stringLen == 0) {
-        //   stringLen = get<uint16_t>();
-        // }
+      const std::string readString(uint16_t stringLen = 0) {
+        if (stringLen == 0) {
+          stringLen = read<uint16_t>();
+        }
 
-        // if (!canRead(stringLen)) {
-        //   return std::string();
-        // }
+        if (!canRead(stringLen)) {
+          return std::string();
+        }
 
-        // char* v = reinterpret_cast<char*>(buffer) + info.position; //does not break strict aliasing
-        // info.position += stringLen;
-        // return std::string(v, stringLen);
+        char* v = reinterpret_cast<char*>(m_buffer) + m_info.m_bufferPos; //does not break strict aliasing
+        m_info.m_bufferPos += stringLen;
+        return std::string(v, stringLen);
       };
       
-      void write(const void* bytes, const size_t size) {
+        /**
+         *  Message Write manipulators
+         **/
+      void write(const void* bytes, const size_t size, const MessageIncrementType increment = MESSAGE_INCREMENT_BUFFER_AND_SIZE) {
         if (!canWrite(size)) {
           return;
         }
 
         memcpy(m_buffer + m_info.m_bufferPos, bytes, size);
-        m_info.m_bufferPos += size;
-        m_info.m_messageSize += size;
+        if (increment != MESSAGE_INCREMENT_SIZE) m_info.m_bufferPos += size;
+        if (increment != MESSAGE_INCREMENT_BUFFER) m_info.m_messageSize += size;
       }
 
       template<typename T>
@@ -178,52 +185,49 @@ namespace CanaryLib {
       }
 
       void writePaddingBytes(const size_t n) {
-        #define canAdd(size) ((size + m_info.m_bufferPos) < NETWORKMESSAGE_MAXSIZE)
-        if (!canAdd(n)) {
-          return;
-        }
-        #undef canAdd
-
-        memset(m_buffer + m_info.m_bufferPos, 0x33, n);
-        m_info.m_messageSize += n;
+        uint8_t byte = 0x33;
+        write(&byte, n, MESSAGE_INCREMENT_SIZE);
       }
 
       void writeString(const std::string& value) {
-        write<uint16_t>
+        size_t stringLen = value.length();
+        if (!canWrite(stringLen + 2)) {
+          return;
+        }
+
+        write<uint16_t>(stringLen);
+        write(value.c_str(), stringLen);
       };
-
-      void writeDouble(const double value, const uint8_t precision = 2) {
-        write<uint8_t>(precision);
-	      write<uint32_t>((value * std::pow(static_cast<float>(10), precision)) + std::numeric_limits<int32_t>::max());
-      };
-
-      void writeU8(const uint8_t byte) {
-        write<uint8_t>(byte);
-      } 
-
+      
       void reset() {
          m_info = {}; 
       }
       
-      void skipBytes(const int16_t count) {
-        m_info.m_bufferPos += count;
+      void skip(const size_t size) {
+        m_info.m_bufferPos += size;
+      }
+
+      template<typename T>
+      void skip() {
+        skip(sizeof(T));
+      }
+
+      static void log(int i = 0) {
+        std::cout << "aqui " << i << std::endl;
       }
 
     protected:
       NetworkMessageInfo m_info;
 		  uint8_t m_buffer[NETWORKMESSAGE_MAXSIZE];
 
-    private:
-      bool canRead(const uint32_t size) {
+      const bool canRead(const uint32_t size) {
         bool sizeOverflow = size >= (NETWORKMESSAGE_MAXSIZE - m_info.m_bufferPos);
         bool positionOverflow = (m_info.m_bufferPos + size) > (m_info.m_messageSize + MAX_HEADER_SIZE);
-        bool overflow = sizeOverflow || positionOverflow;
-
-        m_info.overflow = overflow;
-        return !overflow;
+        m_info.overflow = sizeOverflow || positionOverflow;
+        return !m_info.overflow;
       };
       
-      bool canWrite(const uint32_t size) const {
+      const bool canWrite(const uint32_t size) const {
         return (size + m_info.m_bufferPos) < MAX_BODY_LENGTH;
       };
   };
