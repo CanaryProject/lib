@@ -119,10 +119,10 @@ namespace CanaryLib {
         m_info = info;
       }
 
-      const MsgSize_t getMessageSize() const { 
+      const MsgSize_t getLength() const { 
         return m_info.m_messageSize; 
       }
-      void setMessageSize(const MsgSize_t size) { 
+      void setLength(const MsgSize_t size) { 
         m_info.m_messageSize = size; 
       }
 
