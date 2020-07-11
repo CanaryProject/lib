@@ -21,7 +21,8 @@
 #define CANARY_LIB_PROTOCOL_INDEX_H
 
 #include "general.hpp"
-#include "client.hpp"
-#include "server.hpp"
+#include "network_message.hpp"
+
+#include "opcodes/index.hpp"
 
 #endif

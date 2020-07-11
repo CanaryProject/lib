@@ -4,7 +4,7 @@
 add_library(canary_lib "")
 target_sources(canary_lib
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/protocol/general.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/protocol/network_message.cpp
 )
 target_include_directories(canary_lib
   PUBLIC
