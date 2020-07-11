@@ -184,6 +184,15 @@ namespace CanaryLib {
         write(&value, sizeof(T));
       }
 
+      void writeByte(uint8_t value) {
+        if (!canWrite(1)) {
+          return;
+        }
+
+        m_buffer[m_info.m_bufferPos++] = value;
+        m_info.m_messageSize++;
+      }
+
       void writePaddingBytes(const size_t n) {
         uint8_t byte = 0x33;
         write(&byte, n, MESSAGE_INCREMENT_SIZE);
