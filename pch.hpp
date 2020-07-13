@@ -50,4 +50,6 @@
 #include <unordered_map>
 #include <vector>
 
+#include "spdlog/spdlog.h"
+
 #endif

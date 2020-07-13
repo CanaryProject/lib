@@ -22,6 +22,8 @@ add_library(canary_lib::common_lib ALIAS canary_lib)
 add_subdirectory(3rd)
 
 target_link_libraries(canary_lib 
+                        PUBLIC
+                          spdlog::spdlog
                         PRIVATE
                           flatbuffers
 )
