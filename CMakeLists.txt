@@ -1,4 +1,11 @@
 # *****************************************************************************
+# Lib Externals
+# *****************************************************************************
+set(CANARY_LIB_3RD_PARTY_PATH             ${CMAKE_CURRENT_LIST_DIR}/3rd)
+set(CANARY_LIB_EXTERNAL_PATH              ${CMAKE_CURRENT_LIST_DIR}/external)
+set(CANARY_EXTERNAL_OUTPUT_DIRECTORY      ${CMAKE_SOURCE_DIR}/build/lib/external)
+
+# *****************************************************************************
 # CanaryLib
 # *****************************************************************************
 add_library(canary_lib "")
@@ -12,4 +19,9 @@ target_include_directories(canary_lib
     $<INSTALL_INTERFACE:include>)
 add_library(canary_lib::common_lib ALIAS canary_lib)
 
-#target_include_directories(canary_lib SYSTEM)
+add_subdirectory(3rd)
+
+target_link_libraries(canary_lib 
+                        PRIVATE
+                          flatbuffers
+)

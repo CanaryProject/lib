@@ -1,0 +1,1 @@
+./external/flatbuffers/flatc -c -o protocol/messages/ schema/sample.fbs
