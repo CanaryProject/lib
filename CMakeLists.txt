@@ -16,14 +16,18 @@ target_sources(canary_lib
 target_include_directories(canary_lib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:include>
+    spdlog::spdlog
+  PRIVATE
+    flatbuffers
+)
 add_library(canary_lib::common_lib ALIAS canary_lib)
 
 add_subdirectory(3rd)
 
-target_link_libraries(canary_lib 
-                        PUBLIC
-                          spdlog::spdlog
-                        PRIVATE
-                          flatbuffers
+target_link_libraries(canary_lib
+  PUBLIC
+    spdlog::spdlog
+  PRIVATE
+    flatbuffers
 )
