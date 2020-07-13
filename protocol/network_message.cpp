@@ -18,12 +18,9 @@
  */
 
 #include "network_message.hpp"
-#include "messages/sample_generated.h"
 
 namespace CanaryLib {
   uint8_t NetworkMessage::readByte() {
-    flatbuffers::FlatBufferBuilder builder(1024);
-    CanaryLib::Sample::MonsterBuilder monster_builder(builder);
     return unsigned(read<uint8_t>());
   }
 

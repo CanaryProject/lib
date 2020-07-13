@@ -1,4 +1,4 @@
-namespace CanaryLib.Sample;
+namespace CanaryLib;
 
 enum Color:byte { Red = 0, Green, Blue = 2 }
 union Equipment { Weapon } // Optionally add more tables.

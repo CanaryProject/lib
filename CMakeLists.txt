@@ -30,6 +30,5 @@ add_subdirectory(3rd)
 target_link_libraries(canary_lib
   PUBLIC
     spdlog::spdlog
-  PRIVATE
     flatbuffers
 )
