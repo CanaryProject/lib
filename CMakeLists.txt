@@ -25,10 +25,12 @@ target_include_directories(canary_lib SYSTEM
                             ${CANARY_LIB_EXTERNAL_PATH}
 )
 
+include(doctest)
 add_subdirectory(3rd)
 
 target_link_libraries(canary_lib
   PUBLIC
-    spdlog::spdlog
+    doctest::doctest
     flatbuffers
+    spdlog::spdlog
 )
