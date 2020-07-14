@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_PROTOCOL_SERVER_H
-#define CANARY_LIB_PROTOCOL_SERVER_H
+#ifndef CANARY_LIB_PROTOCOL_OPCODES_SERVER_H
+#define CANARY_LIB_PROTOCOL_OPCODES_SERVER_H
 
-#include "../pch.hpp"
+#include "../../pch.hpp"
 
 /*****************************
 ********* Enums

@@ -35,7 +35,17 @@ namespace CanaryLib {
   // 2 bytes for unencrypted message size
   // 4 bytes for checksum
   // 2 bytes for encrypted message size
-  static constexpr MsgSize_t MAX_HEADER_SIZE = 8;
+  static constexpr uint8_t CHECKSUM_LENGTH = 4;
+  static constexpr uint8_t HEADER_LENGTH = 2;
+  static constexpr uint8_t MAX_HEADER_SIZE = 8;
+  static constexpr uint8_t XTEA_MULTIPLE = 8;
+
+  static constexpr uint8_t NON_BODY_LENGTH =
+    HEADER_LENGTH + CHECKSUM_LENGTH + XTEA_MULTIPLE;
+  static constexpr uint32_t MAX_BODY_LENGTH = 
+    NETWORKMESSAGE_MAXSIZE - NON_BODY_LENGTH;
+  static constexpr uint32_t MAX_PROTOCOL_BODY_LENGTH = 
+    MAX_BODY_LENGTH - XTEA_MULTIPLE;
 
 /*****************************
 ********* Enums
@@ -53,8 +63,6 @@ namespace CanaryLib {
 		OutdatedCreature = 0x62,
 		Creature = 0x63
 	};
-
-  void buildMessageModesMap();
 }
 
 #endif

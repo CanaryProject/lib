@@ -17,7 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "general.hpp"
+#ifndef CANARY_LIB_PROTOCOL_OPCODES_INDEX_H
+#define CANARY_LIB_PROTOCOL_OPCODES_INDEX_H
 
-namespace CanaryLib {
-}
+#include "client.hpp"
+#include "server.hpp"
+
+#endif

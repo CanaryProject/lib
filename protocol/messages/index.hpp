@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_PROTOCOL_INDEX_H
-#define CANARY_LIB_PROTOCOL_INDEX_H
+#ifndef CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
+#define CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
 
-#include "general.hpp"
-#include "network_message.hpp"
-
-#include "messages/index.hpp"
-#include "opcodes/index.hpp"
+#include "sample_generated.h"
 
 #endif
