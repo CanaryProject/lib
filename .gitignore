@@ -1,2 +1,2 @@
-tests/canary-lib-tests
 *.exe
+build

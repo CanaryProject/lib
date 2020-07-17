@@ -15,5 +15,5 @@ target_link_libraries(canary-lib-tests canary_lib::common_lib)
 
 set_target_properties(canary-lib-tests
     PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
