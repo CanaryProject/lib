@@ -1,0 +1,8 @@
+namespace CanaryLib;
+
+table WeaponData {
+  id:uint16;
+  name:string;
+  damage:short;
+}
+root_type WeaponData;

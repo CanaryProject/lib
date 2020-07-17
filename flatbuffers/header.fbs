@@ -1,0 +1,8 @@
+namespace CanaryLib;
+
+table Header {
+  checksum:uint32 = 0;
+  encrypted_size:uint16 = 0;
+}
+
+root_type Header;
