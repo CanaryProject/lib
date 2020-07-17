@@ -17,13 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
-#define CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
+#ifndef CANARY_LIB_SRC_INDEX_H
+#define CANARY_LIB_SRC_INDEX_H
 
-#include "encrypted_message_generated.h"
-#include "header_generated.h"
-#include "message_generated.h"
-#include "player_data_generated.h"
-#include "weapon_data_generated.h"
+#include "creatures/index.hpp"
+#include "global/index.hpp"
+#include "items/index.hpp"
+#include "protocol/index.hpp"
+#include "pch.hpp"
 
 #endif

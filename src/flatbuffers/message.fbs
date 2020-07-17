@@ -1,3 +1,4 @@
+include "header.fbs";
 include "player_data.fbs";
 include "weapon_data.fbs";
 
@@ -9,6 +10,7 @@ union Data {
 } // Optionally add more tables.
 
 table Message {
+  header:Header;
   data:Data;
 }
 root_type Message;
