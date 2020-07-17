@@ -1,0 +1,9 @@
+include "header.fbs";
+
+namespace CanaryLib;
+
+table EncryptedMessage {
+  header:Header;
+  data:[ubyte];
+}
+root_type EncryptedMessage;

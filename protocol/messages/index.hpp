@@ -20,6 +20,7 @@
 #ifndef CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
 #define CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
 
+#include "encrypted_message_generated.h"
 #include "header_generated.h"
 #include "message_generated.h"
 #include "player_data_generated.h"
