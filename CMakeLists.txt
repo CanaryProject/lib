@@ -32,5 +32,4 @@ target_link_libraries(canary_lib
     spdlog::spdlog
 )
 
-include(doctest)
 add_subdirectory(3rd)
