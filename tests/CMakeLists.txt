@@ -17,6 +17,3 @@ set_target_properties(canary-lib-tests
     PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/"
 )
-
-doctest_discover_tests(canary-lib-tests
-                      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/canary-lib)
