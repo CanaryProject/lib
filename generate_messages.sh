@@ -16,5 +16,5 @@ if [ ${BUILD} == "On" ]; then
 fi
 
 ./canary_echo.sh "Generating flatbuffers messages"
-./external/flatbuffers/flatc -c -o protocol/messages/ flatbuffers/*
+./external/flatbuffers/flatc -c -o src/protocol/messages/ src/flatbuffers/*
 ./canary_echo.sh "Finished"
