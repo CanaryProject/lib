@@ -23,7 +23,6 @@
 
 #include <iostream>
 #include "../pch.hpp"
-#include "../protocol/network_message.hpp"
 
 namespace CanaryLib {
   static constexpr uint32_t XTEA_DELTA = 0x61C88647;
