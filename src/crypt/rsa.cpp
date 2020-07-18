@@ -30,7 +30,7 @@ namespace CanaryLib {
     mpz_clear(d);
   }
 
-  bool RSA::decrypt(char* msg) const {
+  void RSA::decrypt(char* msg) const {
     mpz_t c, m;
     mpz_init2(c, 1024);
     mpz_init2(m, 1024);

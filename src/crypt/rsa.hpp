@@ -40,7 +40,7 @@ namespace CanaryLib {
         return instance;
       }
 
-      bool decrypt(char* msg) const;
+      void decrypt(char* msg) const;
       bool encrypt(unsigned char *msg, int size);
       int getSize();
       void setKey(const char* nString, const char* dString);
