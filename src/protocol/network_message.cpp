@@ -71,4 +71,22 @@ namespace CanaryLib {
     write<uint16_t>(stringLen);
     write(value.c_str(), stringLen);
   };
+
+  bool NetworkMessage::decryptRSA() {
+    if ((getLength() - getBufferPosition()) < 128) {
+      return false;
+    }
+
+    RSA().decrypt(reinterpret_cast<char*>(getBuffer()) + getBufferPosition()); //does not break strict aliasing
+    return (readByte() == 0);
+  }
+
+  bool NetworkMessage::encryptRSA() {
+    int size = RSA().getSize();
+    if(m_info.m_messageSize  < size) {
+      return false;
+    }
+
+    return RSA().encrypt(static_cast<unsigned char*>(m_buffer) + m_info.m_bufferPos - size, size);
+  }
 }

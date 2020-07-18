@@ -17,15 +17,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_SRC_INDEX_H
-#define CANARY_LIB_SRC_INDEX_H
 
-#include "creatures/index.hpp"
-#include "crypt/index.hpp"
-#include "global/index.hpp"
-#include "items/index.hpp"
-#include "protocol/index.hpp"
+#ifndef CANARY_LIB_CRYPT_RSA_H
+#define CANARY_LIB_CRYPT_RSA_H
 
-#include "pch.hpp"
+#include <gmp.h>
+#include "../pch.hpp"
+
+namespace CanaryLib {
+  class RSA {
+    public:
+      RSA();
+      ~RSA();
+
+      // Singleton - ensures we don't accidentally copy it
+      RSA(const RSA&) = delete;
+      RSA& operator=(const RSA&) = delete;
+
+      static RSA& getInstance() {
+        static RSA instance; // Guaranteed to be destroyed.
+                              // Instantiated on first use.
+        return instance;
+      }
+
+      bool decrypt(char* msg) const;
+      bool encrypt(unsigned char *msg, int size);
+      int getSize();
+      void setKey(const char* nString, const char* dString);
+
+    private:
+		  mpz_t n, d;
+  };  
+
+  constexpr auto RSA = &RSA::getInstance;
+}
 
 #endif

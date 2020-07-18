@@ -50,18 +50,24 @@ namespace CanaryLib {
 /*****************************
 ********* Enums
 *****************************/
-	enum LoginServerOpts {
-		LoginServerError = 0xA,
-		LoginServerMotd = 0x14,
-		LoginServerUpdateNeeded = 0x1E,
-		LoginServerCharacterList = 0x64
-	};
-
 	enum ItemOpcode {
 		StaticText = 0x60,
 		UnknownCreature = 0x61,
 		OutdatedCreature = 0x62,
 		Creature = 0x63
+	};
+
+  enum ChecksumMethods_t : uint8_t {
+    CHECKSUM_METHOD_NONE,
+    CHECKSUM_METHOD_ADLER32,
+    CHECKSUM_METHOD_SEQUENCE
+  };
+
+	enum LoginServerOpts {
+		LoginServerError = 0xA,
+		LoginServerMotd = 0x14,
+		LoginServerUpdateNeeded = 0x1E,
+		LoginServerCharacterList = 0x64
 	};
 }
 

@@ -17,15 +17,38 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_SRC_INDEX_H
-#define CANARY_LIB_SRC_INDEX_H
 
-#include "creatures/index.hpp"
-#include "crypt/index.hpp"
-#include "global/index.hpp"
-#include "items/index.hpp"
-#include "protocol/index.hpp"
+#ifndef CANARY_LIB_CRYPT_XTEA_H
+#define CANARY_LIB_CRYPT_XTEA_H
 
-#include "pch.hpp"
+#include <iostream>
+#include "../pch.hpp"
+#include "../protocol/network_message.hpp"
+
+namespace CanaryLib {
+  class XTEA {
+    public:
+      XTEA() {}
+
+      XTEA(const XTEA&) = delete;
+      XTEA& operator=(const XTEA&) = delete;
+
+      static XTEA& getInstance() {
+        static XTEA instance; // Guaranteed to be destroyed.
+                              // Instantiated on first use.
+        return instance;
+      }
+
+      bool decrypt(NetworkMessage& msg, ChecksumMethods_t checksumMethod) const;
+      void encrypt(NetworkMessage& msg) const;
+      void setKey(const uint32_t* k) {
+			  memcpy(key, k, sizeof(*k) * 4);
+      };
+
+    private:
+		  uint32_t key[4] = {};
+  };  
+  constexpr auto XTEA = &XTEA::getInstance;
+}
 
 #endif

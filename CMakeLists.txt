@@ -25,7 +25,7 @@ set(CANARY_LIB_EXTERNAL_OUTPUT_DIRECTORY  ${CMAKE_SOURCE_DIR}/build/canary-lib/e
 # *****************************************************************************
 # Append cmake search path
 # *****************************************************************************
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 
 # *****************************************************************************
@@ -34,6 +34,12 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(MessageColors)
 include(LoggingHelper)
 include(ToolGitSubmodule)
+
+
+# *****************************************************************************
+# Find Packages
+# *****************************************************************************
+find_package(GMP REQUIRED)
 
 
 # *****************************************************************************

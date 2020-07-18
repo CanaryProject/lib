@@ -167,6 +167,8 @@ endif()
 target_sources(canary_lib
   PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/protocol/network_message.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/crypt/rsa.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/crypt/xtea.cpp
 )
 
 target_include_directories(canary_lib
@@ -179,6 +181,7 @@ add_library(canary_lib::common_lib ALIAS canary_lib)
 target_include_directories(canary_lib SYSTEM
                           PUBLIC
                             ${CANARY_LIB_EXTERNAL_PATH}
+                            ${GMP_INCLUDE_DIR}
 )
 
 target_link_libraries(canary_lib
@@ -186,6 +189,7 @@ target_link_libraries(canary_lib
     doctest::doctest
     flatbuffers
     spdlog::spdlog
+    ${GMP_LIBRARIES}
 )
 
 target_compile_options(canary_lib PRIVATE ${PROJECT_WARNINGS_FLAGS})

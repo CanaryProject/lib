@@ -21,6 +21,7 @@
 #define CANARY_LIB_PROTOCOL_NETWORK_MESSAGE_H
 
 #include "../pch.hpp"
+#include "../crypt/rsa.hpp"
 #include "general.hpp"
 
 namespace CanaryLib {
@@ -145,9 +146,29 @@ namespace CanaryLib {
         skip(sizeof(T));
       }
       
+        /**
+         *  Message Manipulators tools
+         **/
+      bool decryptRSA();
+      bool encryptRSA();
+
+      uint8_t* getOutputBuffer() {
+        return m_buffer + outputBufferStart;
+      }
+      
     protected:
       NetworkMessageInfo m_info;
 		  uint8_t m_buffer[NETWORKMESSAGE_MAXSIZE];
+		  MsgSize_t outputBufferStart = MAX_HEADER_SIZE;
+
+      template <typename T>
+      void add_header(T add) {
+        assert(outputBufferStart >= sizeof(T));
+        outputBufferStart -= sizeof(T);
+        memcpy(m_buffer + outputBufferStart, &add, sizeof(T));
+        //added header size to the message size
+        m_info.m_messageSize += sizeof(T);
+      }
 
       bool canRead(const uint32_t size) {
         bool sizeOverflow = size >= (NETWORKMESSAGE_MAXSIZE - m_info.m_bufferPos);
