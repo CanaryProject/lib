@@ -39,7 +39,7 @@ namespace CanaryLib {
         return instance;
       }
 
-      bool decrypt(uint16_t length, uint8_t* buffer) const;
+      void decrypt(uint16_t length, uint8_t* buffer) const;
       void encrypt(uint16_t length, uint8_t* buffer) const;
       void setKey(const uint32_t* k) {
 			  memcpy(key, k, sizeof(*k) * 4);

@@ -20,7 +20,7 @@
 #include "xtea.hpp"
 
 namespace CanaryLib {
-  bool XTEA::decrypt(uint16_t length, uint8_t* buffer) const {
+  void XTEA::decrypt(uint16_t length, uint8_t* buffer) const {
     #if defined(__AVX512F__)
     int32_t messageLength = static_cast<int32_t>(length) - 256;
     #elif defined(__AVX2__)
