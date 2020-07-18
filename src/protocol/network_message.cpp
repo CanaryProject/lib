@@ -89,4 +89,32 @@ namespace CanaryLib {
 
     return RSA().encrypt(static_cast<unsigned char*>(m_buffer) + m_info.m_bufferPos - size, size);
   }
+
+  bool NetworkMessage::decryptXTEA(ChecksumMethods_t checksumMethod) {
+    uint16_t contentLength = getLength() - (checksumMethod == CHECKSUM_METHOD_NONE ? 2 : 6);
+    if ((contentLength & 7) != 0) {
+      return false;
+    }
+    uint8_t* buffer = getBuffer() + getBufferPosition();
+    
+    XTEA().decrypt(contentLength, buffer);
+
+    uint16_t innerLength = read<uint16_t>();
+    if (innerLength > contentLength - 2) {
+      return false;
+    }
+    setLength(innerLength);
+
+    return true;
+  }
+
+  void NetworkMessage::encryptXTEA() {
+    // The message must be a multiple of 8
+    size_t paddingBytes = getLength() & 7;
+    if (paddingBytes != 0) {
+      writePaddingBytes(8 - paddingBytes);
+    }
+
+    XTEA().encrypt(getLength(), getOutputBuffer());
+  }
 }

@@ -20,23 +20,15 @@
 #include "xtea.hpp"
 
 namespace CanaryLib {
-  bool XTEA::decrypt(NetworkMessage& msg, ChecksumMethods_t checksumMethod) const {
-    uint16_t msgLength = msg.getLength() - (checksumMethod == CHECKSUM_METHOD_NONE ? 2 : 6);
-    if ((msgLength & 7) != 0) {
-      return false;
-    }
-
-    const uint32_t delta = 0x61C88647;
-
-    uint8_t* buffer = msg.getBuffer() + msg.getBufferPosition();
+  bool XTEA::decrypt(uint16_t length, uint8_t* buffer) const {
     #if defined(__AVX512F__)
-    int32_t messageLength = static_cast<int32_t>(msgLength) - 256;
+    int32_t messageLength = static_cast<int32_t>(length) - 256;
     #elif defined(__AVX2__)
-    int32_t messageLength = static_cast<int32_t>(msgLength) - 128;
+    int32_t messageLength = static_cast<int32_t>(length) - 128;
     #elif defined(__SSE2__)
-    int32_t messageLength = static_cast<int32_t>(msgLength) - 64;
+    int32_t messageLength = static_cast<int32_t>(length) - 64;
     #else
-    int32_t messageLength = static_cast<int32_t>(msgLength);
+    int32_t messageLength = static_cast<int32_t>(length);
     #endif
     int32_t readPos = 0;
     const uint32_t k[] = {key[0], key[1], key[2], key[3]};
@@ -44,7 +36,7 @@ namespace CanaryLib {
     uint32_t sum = 0xC6EF3720;
     for (int32_t i = 0; i < 32; ++i) {
       precachedControlSum[i][0] = (sum + k[(sum >> 11) & 3]);
-      sum += delta;
+      sum += XTEA_DELTA;
       precachedControlSum[i][1] = (sum + k[sum & 3]);
     }
     #if defined(__AVX512F__)
@@ -193,34 +185,17 @@ namespace CanaryLib {
       memcpy(buffer + readPos, vData, 8);
       readPos += 8;
     }
-
-    uint16_t innerLength = msg.read<uint16_t>();
-    if (innerLength > msgLength - 2) {
-      return false;
-    }
-
-    msg.setLength(innerLength);
-    return true;
   }
 
-  void XTEA::encrypt(NetworkMessage& msg) const {
-    const uint32_t delta = 0x61C88647;
-
-    // The message must be a multiple of 8
-    size_t paddingBytes = msg.getLength() & 7;
-    if (paddingBytes != 0) {
-      msg.writePaddingBytes(8 - paddingBytes);
-    }
-
-    uint8_t* buffer = msg.getOutputBuffer();
+  void XTEA::encrypt(uint16_t length, uint8_t* buffer) const {
     #if defined(__AVX512F__)
-    int32_t messageLength = static_cast<int32_t>(msg.getLength()) - 256;
+    int32_t messageLength = static_cast<int32_t>(length) - 256;
     #elif defined(__AVX2__)
-    int32_t messageLength = static_cast<int32_t>(msg.getLength()) - 128;
+    int32_t messageLength = static_cast<int32_t>(length) - 128;
     #elif defined(__SSE2__)
-    int32_t messageLength = static_cast<int32_t>(msg.getLength()) - 64;
+    int32_t messageLength = static_cast<int32_t>(length) - 64;
     #else
-    int32_t messageLength = static_cast<int32_t>(msg.getLength());
+    int32_t messageLength = static_cast<int32_t>(length);
     #endif
     int32_t readPos = 0;
     const uint32_t k[] = {key[0], key[1], key[2], key[3]};
@@ -228,7 +203,7 @@ namespace CanaryLib {
     uint32_t sum = 0;
     for (int32_t i = 0; i < 32; ++i) {
       precachedControlSum[i][0] = (sum + k[sum & 3]);
-      sum -= delta;
+      sum -= XTEA_DELTA;
       precachedControlSum[i][1] = (sum + k[(sum >> 11) & 3]);
     }
     #if defined(__AVX512F__)

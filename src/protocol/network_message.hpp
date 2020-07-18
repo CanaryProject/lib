@@ -22,6 +22,7 @@
 
 #include "../pch.hpp"
 #include "../crypt/rsa.hpp"
+#include "../crypt/xtea.hpp"
 #include "general.hpp"
 
 namespace CanaryLib {
@@ -149,8 +150,13 @@ namespace CanaryLib {
         /**
          *  Message Manipulators tools
          **/
+      // RSA
       bool decryptRSA();
       bool encryptRSA();
+
+      // XTEA
+      bool decryptXTEA(ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
+      void encryptXTEA();
 
       uint8_t* getOutputBuffer() {
         return m_buffer + outputBufferStart;

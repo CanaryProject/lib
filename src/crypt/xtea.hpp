@@ -26,6 +26,7 @@
 #include "../protocol/network_message.hpp"
 
 namespace CanaryLib {
+  static constexpr uint32_t XTEA_DELTA = 0x61C88647;
   class XTEA {
     public:
       XTEA() {}
@@ -39,8 +40,8 @@ namespace CanaryLib {
         return instance;
       }
 
-      bool decrypt(NetworkMessage& msg, ChecksumMethods_t checksumMethod) const;
-      void encrypt(NetworkMessage& msg) const;
+      bool decrypt(uint16_t length, uint8_t* buffer) const;
+      void encrypt(uint16_t length, uint8_t* buffer) const;
       void setKey(const uint32_t* k) {
 			  memcpy(key, k, sizeof(*k) * 4);
       };
