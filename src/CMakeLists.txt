@@ -166,13 +166,9 @@ endif()
 # *****************************************************************************
 target_sources(canary_lib
   PRIVATE
-    #crypt
+    ${CMAKE_CURRENT_LIST_DIR}/protocol/network_message.cpp
     ${CMAKE_CURRENT_LIST_DIR}/crypt/rsa.cpp
     ${CMAKE_CURRENT_LIST_DIR}/crypt/xtea.cpp
-    #global
-    ${CMAKE_CURRENT_LIST_DIR}/global/position.cpp
-    #protocol
-    ${CMAKE_CURRENT_LIST_DIR}/protocol/network_message.cpp
 )
 
 target_include_directories(canary_lib

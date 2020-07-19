@@ -23,6 +23,5 @@
 #include "general.hpp"
 #include "graphical.hpp"
 #include "message.hpp"
-#include "position.hpp"
 
 #endif
