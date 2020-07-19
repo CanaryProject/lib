@@ -44,7 +44,7 @@ TEST_SUITE("NetworkMessage Test") {
     
     buf = fbb.GetBufferPointer();
 
-    auto header = CanaryLib::CreateHeader(fbb, size, size);
+    auto header = CanaryLib::CreateHeader(fbb, size, size, size);
     auto encrypted_bytes = fbb.CreateVector(buf, size);
 
     auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, encrypted_bytes);
@@ -53,6 +53,7 @@ TEST_SUITE("NetworkMessage Test") {
     auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
     CHECK_EQ(final->header()->checksum(), size);
     CHECK_EQ(final->header()->encrypted_size(), size);
+    CHECK_EQ(final->header()->size(), size);
 
     const uint8_t* final_data = final->data()->data();
     auto final_msg = CanaryLib::GetMessage(final_data);
@@ -71,6 +72,7 @@ TEST_SUITE("NetworkMessage Test") {
         return p.x == x && p.y == y && p.z == z;
       }
     };
+
     // Const variables for testing purpose
     std::string name = "Mr. Someone";
     uint32_t id = 3294967295;
@@ -95,7 +97,7 @@ TEST_SUITE("NetworkMessage Test") {
 
     // Start flabuffer creation
     flatbuffers::FlatBufferBuilder fbb;
-    auto header = CanaryLib::CreateHeader(fbb, msg_size, msg_size);
+    auto header = CanaryLib::CreateHeader(fbb, msg_size, msg_size, msg_size);
     // create flatbuffer vector with the outputbuffer
     auto encrypted_bytes = fbb.CreateVector(msg.getOutputBuffer(), msg_size);
 
@@ -107,6 +109,7 @@ TEST_SUITE("NetworkMessage Test") {
 
     // Validade header
     CHECK_EQ(final->header()->checksum(), msg_size);
+    CHECK_EQ(final->header()->size(), msg_size);
     CHECK_EQ(encrypted_size, msg_size);
 
     // Validate Size
