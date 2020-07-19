@@ -65,19 +65,13 @@ TEST_SUITE("NetworkMessage Test") {
   TEST_CASE("Write>Encode>Decode>Read messages with flatbuffers") {
     struct Position {
       uint16_t x = 0;
-      uint16_t y = 0;
-      uint8_t z = 0;
-
-      bool operator==(const Position& p) const {
-        return p.x == x && p.y == y && p.z == z;
-      }
     };
 
     // Const variables for testing purpose
     std::string name = "Mr. Someone";
     uint32_t id = 3294967295;
-    Position pos{63201, 5513, 8};
-    
+    Position pos{63201};
+
     // Create the default message that will be our buffer
     CanaryLib::NetworkMessage msg;
     msg.write<uint32_t>(id);
@@ -95,9 +89,12 @@ TEST_SUITE("NetworkMessage Test") {
     // Encrypt input
     CanaryLib::XTEA().encrypt(msg_size, msg.getOutputBuffer());
 
+    // Get checksum
+    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
+
     // Start flabuffer creation
     flatbuffers::FlatBufferBuilder fbb;
-    auto header = CanaryLib::CreateHeader(fbb, msg_size, msg_size, msg_size);
+    auto header = CanaryLib::CreateHeader(fbb, recvChecksum, msg_size, msg_size);
     // create flatbuffer vector with the outputbuffer
     auto encrypted_bytes = fbb.CreateVector(msg.getOutputBuffer(), msg_size);
 
@@ -108,7 +105,7 @@ TEST_SUITE("NetworkMessage Test") {
     auto encrypted_size = final->header()->encrypted_size();
 
     // Validade header
-    CHECK_EQ(final->header()->checksum(), msg_size);
+    CHECK_EQ(final->header()->checksum(), recvChecksum);
     CHECK_EQ(final->header()->size(), msg_size);
     CHECK_EQ(encrypted_size, msg_size);
 
@@ -122,10 +119,14 @@ TEST_SUITE("NetworkMessage Test") {
     // Validade buffer position (must be initial pos)
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
 
+    // Validate checksum
+    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
+    CHECK_EQ(checksum, recvChecksum);
+
     // Validade decrypted message values
     CanaryLib::XTEA().decrypt(msg_size, output.getOutputBuffer());
     CHECK_EQ(output.read<uint32_t>(), id);
     CHECK_EQ(output.readString(), name);
-    CHECK_EQ(output.read<Position>(), pos);
+    CHECK_EQ(output.read<Position>().x, pos.x);
   }
 }
