@@ -161,6 +161,8 @@ namespace CanaryLib {
       uint8_t* getOutputBuffer() {
         return m_buffer + outputBufferStart;
       }
+
+      static uint32_t getChecksum(const uint8_t* data, size_t length);
       
     protected:
       NetworkMessageInfo m_info;
