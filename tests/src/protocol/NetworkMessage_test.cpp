@@ -62,6 +62,15 @@ TEST_SUITE("NetworkMessage Test") {
     CHECK_EQ(final_msg->data_as_PlayerData()->id(), id);
   }
   TEST_CASE("Write>Encode>Decode>Read messages with flatbuffers") {
+    struct Position {
+      uint16_t x = 0;
+      uint16_t y = 0;
+      uint8_t z = 0;
+
+      bool operator==(const Position& p) const {
+        return p.x == x && p.y == y && p.z == z;
+      }
+    };
     // Const variables for testing purpose
     std::string name = "Mr. Someone";
     uint32_t id = 3294967295;
