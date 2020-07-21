@@ -141,7 +141,7 @@ TEST_SUITE("NetworkMessage Test") {
     CHECK_EQ(final_msg->data_as_PlayerData()->name()->c_str(), nameStr);
     CHECK_EQ(final_msg->data_as_PlayerData()->id(), id);
   }
-  TEST_CASE("Write>Encode>Decode>Read messages with flatbuffers") {
+  TEST_CASE("Flatbuffer wrapper test") {
     struct Position {
       uint16_t x = 0;
     };
@@ -157,53 +157,37 @@ TEST_SUITE("NetworkMessage Test") {
     msg.writeString(name);
     msg.write<Position>(pos);
 
-    // Validate xtea size and write padding
-    uint16_t msg_size = msg.getLength();
-    if ((msg_size % 8) != 0) {
-      msg.writePaddingBytes(8 - (msg_size % 8));
-    }
-    msg_size = msg.getLength();
-    msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
-    
-    // Encrypt input
-    CanaryLib::XTEA().encrypt(msg_size, msg.getOutputBuffer());
+    // encrypt and calculate encrypted checksum
+    uint16_t size = CanaryLib::FlatbuffersWrapper::prepareXTEAEncryption(&msg);
+    CanaryLib::FlatbuffersWrapper::encryptXTEA(&msg, size);
+    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
 
-    // Get checksum
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
-
-    // Start flabuffer creation
-    flatbuffers::FlatBufferBuilder fbb;
-    auto header = CanaryLib::CreateHeader(fbb, recvChecksum, msg_size, msg_size);
-    // create flatbuffer vector with the outputbuffer
-    auto encrypted_bytes = fbb.CreateVector(msg.getOutputBuffer(), msg_size);
-
-    auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, encrypted_bytes);
-    fbb.Finish(encrypted_message);
-
-    auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
-    auto encrypted_size = final->header()->encrypted_size();
+    // create flatbuffers wrapper
+    uint8_t *buffer = CanaryLib::FlatbuffersWrapper::createFlatbuffers(&msg, size, size);
 
     // Validade header
-    CHECK_EQ(final->header()->checksum(), recvChecksum);
-    CHECK_EQ(final->header()->size(), msg_size);
-    CHECK_EQ(encrypted_size, msg_size);
+    auto final = CanaryLib::GetEncryptedMessage(buffer);
+    CHECK_EQ(final->header()->checksum(), checksum);
+    CHECK_EQ(final->header()->size(), size);
+    CHECK_EQ(final->header()->encrypted_size(), size);
 
     // Validate Size
-    CHECK_EQ(final->data()->size(), msg_size);
+    CHECK_EQ(final->data()->size(), size);
 
-    // Read message from flatbuffer
-    CanaryLib::NetworkMessage output;
-    output.write(final->data()->data(), msg_size, CanaryLib::MESSAGE_INCREMENT_SIZE);
+    // Receive message from flatbuffers wrapper
+    CanaryLib::NetworkMessage output = CanaryLib::FlatbuffersWrapper::readFlatbuffers(buffer, size);
+
+    // Validate checksum before decrypt
+    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
+    CHECK_EQ(recvChecksum, final->header()->checksum());
+
+    // Decrypt
+    CanaryLib::FlatbuffersWrapper::decryptXTEA(&output, size);
 
     // Validade buffer position (must be initial pos)
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
 
-    // Validate checksum
-    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
-    CHECK_EQ(checksum, recvChecksum);
-
     // Validade decrypted message values
-    CanaryLib::XTEA().decrypt(msg_size, output.getOutputBuffer());
     CHECK_EQ(output.read<uint32_t>(), id);
     CHECK_EQ(output.readString(), name);
     CHECK_EQ(output.read<Position>().x, pos.x);

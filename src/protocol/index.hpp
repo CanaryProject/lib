@@ -20,6 +20,7 @@
 #ifndef CANARY_LIB_PROTOCOL_INDEX_H
 #define CANARY_LIB_PROTOCOL_INDEX_H
 
+#include "flatbuffers_wrapper.hpp"
 #include "general.hpp"
 #include "network_message.hpp"
 
