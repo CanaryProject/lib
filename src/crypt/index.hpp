@@ -20,7 +20,6 @@
 #ifndef CANARY_LIB_CRYPT_INDEX_H
 #define CANARY_LIB_CRYPT_INDEX_H
 
-#include "rsa.hpp"
 #include "xtea.hpp"
 
 #endif

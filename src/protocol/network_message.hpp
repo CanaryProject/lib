@@ -21,7 +21,6 @@
 #define CANARY_LIB_PROTOCOL_NETWORK_MESSAGE_H
 
 #include "../pch.hpp"
-#include "../crypt/rsa.hpp"
 #include "../crypt/xtea.hpp"
 #include "general.hpp"
 
@@ -150,10 +149,6 @@ namespace CanaryLib {
         /**
          *  Message Manipulators tools
          **/
-      // RSA
-      bool decryptRSA();
-      bool encryptRSA();
-
       // XTEA
       bool decryptXTEA(ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
       void encryptXTEA();
