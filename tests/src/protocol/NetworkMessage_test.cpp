@@ -157,32 +157,41 @@ TEST_SUITE("NetworkMessage Test") {
     msg.writeString(name);
     msg.write<Position>(pos);
 
-    // encrypt and calculate encrypted checksum
-    uint16_t size = CanaryLib::FlatbuffersWrapper::prepareXTEAEncryption(&msg);
-    CanaryLib::FlatbuffersWrapper::encryptXTEA(&msg, size);
+    // wrapping
+    CanaryLib::FlatbuffersWrapper wrapper(&msg);
+    wrapper.encryptXTEA();
+    wrapper.createFlatbuffers();
+
+    // validation
+    uint16_t size = wrapper.message()->getLength();
+    uint16_t w_size = wrapper.size();
+    uint16_t encrypted_size = wrapper.encryptedSize();
     uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
 
-    // create flatbuffers wrapper
-    uint8_t *buffer = CanaryLib::FlatbuffersWrapper::createFlatbuffers(&msg, size, size);
+    // validate message mutation
+    CHECK_EQ(msg.getLength(), size);
 
     // Validade header
-    auto final = CanaryLib::GetEncryptedMessage(buffer);
+    auto final = CanaryLib::GetEncryptedMessage(wrapper.body());
     CHECK_EQ(final->header()->checksum(), checksum);
     CHECK_EQ(final->header()->size(), size);
-    CHECK_EQ(final->header()->encrypted_size(), size);
+    CHECK_EQ(final->header()->encrypted_size(), encrypted_size);
 
     // Validate Size
     CHECK_EQ(final->data()->size(), size);
 
     // Receive message from flatbuffers wrapper
-    CanaryLib::NetworkMessage output = CanaryLib::FlatbuffersWrapper::readFlatbuffers(buffer, size);
+    CanaryLib::NetworkMessage output;
+    CanaryLib::FlatbuffersWrapper iWrapper(&output);
+    iWrapper.copy(wrapper.buffer());
+    iWrapper.writeMessage();
 
     // Validate checksum before decrypt
     uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
     CHECK_EQ(recvChecksum, final->header()->checksum());
 
     // Decrypt
-    CanaryLib::FlatbuffersWrapper::decryptXTEA(&output, size);
+    iWrapper.decryptXTEA();
 
     // Validade buffer position (must be initial pos)
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
