@@ -29,20 +29,38 @@ namespace CanaryLib {
 
   class FlatbuffersWrapper {
     public:
-      FlatbuffersWrapper() = delete;
-      FlatbuffersWrapper(NetworkMessage* input) : msg(input) {}
-
-      // Getters
-      NetworkMessage* message() {
-        return msg;
+      FlatbuffersWrapper() = default;
+      // Initialize wrapper content from a raw message
+      FlatbuffersWrapper(NetworkMessage msg) {
+        content_size = msg.getLength();
+        memcpy(content_buffer, msg.getOutputBuffer(), content_size);
+      }
+      // Initialize wrapper content from a known content buffer and size
+      FlatbuffersWrapper(uint8_t *m_buffer, uint16_t m_size) {
+        content_size = m_size;
+        memcpy(content_buffer, m_buffer, content_size);
+      }
+      // Initialize wrapper content from another wrapper buffer
+      FlatbuffersWrapper(uint8_t *w_buffer) {
+        copy(w_buffer);
+        loadFlatbuffers();
       }
 
-      uint8_t* buffer() {
+      // Getters
+      uint8_t *buffer() {
         return w_buffer;
       }
 
-      uint8_t* body() {
+      uint8_t *body() {
         return w_buffer + WRAPPER_HEADER_SIZE;
+      }
+
+      uint8_t *content() {
+        return content_buffer;
+      }
+
+      uint16_t contentSize() {
+        return content_size;
       }
 
       uint16_t encryptedSize() {
@@ -50,87 +68,35 @@ namespace CanaryLib {
       }
 
       uint16_t size() {
-        return w_size;
+        return wrapper_size;
       }
 
-      void copy(const uint8_t* bytes) {
-        uint16_t size;
-        memcpy(&size, bytes, WRAPPER_HEADER_SIZE);
-        write(bytes + WRAPPER_HEADER_SIZE, size);
-      }
+      // Flatbuffers manipulators
+      void buildFlatbuffers(ContentFormat format = ContentFormat_RawMessage);
+      const EncryptedMessage *loadFlatbuffers();
+      void toRawMessage(NetworkMessage& output);
 
-      void createFlatbuffers() {
-        uint32_t recvChecksum = NetworkMessage::getChecksum(msg->getOutputBuffer(), msg->getLength());
+      // Wrapper buffer manipulators
+      void copy(const uint8_t *bytes);
 
-        // Start flabuffer creation
-        flatbuffers::FlatBufferBuilder fbb;
-        // create flatbuffer vector with the outputbuffer
-        auto encrypted_bytes = fbb.CreateVector(msg->getOutputBuffer(), msg->getLength());
-        // create flatbuffer header
-        auto header = CreateHeader(fbb, recvChecksum, msg->getLength(), encrypted_size);
+      bool write(const void *bytes, uint16_t size);
+      void writeSize(uint16_t size);
 
-        auto encrypted_message = CreateEncryptedMessage(fbb, header, encrypted_bytes);
-        fbb.Finish(encrypted_message);
-
-        write(fbb.GetBufferPointer(), fbb.GetSize());
-      }
-
-      void writeMessage() {
-        msg->reset();
-        auto final = GetEncryptedMessage(body());
-
-        // Read message from flatbuffer
-        if (final->data()) {
-          msg->write(final->data()->data(), final->header()->size(), MESSAGE_INCREMENT_SIZE);
-        }
-      }
-
-      void decryptXTEA() {
-        XTEA().decrypt(msg->getLength(), msg->getOutputBuffer());
-      }
-
-      void encryptXTEA() {
-        prepareXTEAEncryption();
-        XTEA().encrypt(msg->getLength(), msg->getOutputBuffer());
-        encrypted_size = msg->getLength();
-      }
-
-      uint16_t prepareXTEAEncryption() {
-          // Validate xtea size and write padding
-        uint16_t size = msg->getLength();
-        if ((size % 8) != 0) {
-          msg->writePaddingBytes(8 - (size % 8));
-        }
-        msg->setBufferPosition(WRAPPER_HEADER_SIZE);
-
-        return msg->getLength();
-      }
-
-      void setMessage(NetworkMessage* input) {
-        msg = input;
-      }
-
-      bool write(const void* bytes, uint16_t size) {
-        if (!canWrite(size)) {
-          return false;
-        }
-        
-        memcpy(w_buffer + WRAPPER_HEADER_SIZE, bytes, size);
-        writeSize(size);
-        return true;
-      }
-
-      void writeSize(uint16_t size) {
-        w_size = size;
-        memcpy(w_buffer, &w_size, WRAPPER_HEADER_SIZE);
-      }
+      // Content manipulators
+      void decryptXTEA();
+      void encryptXTEA();
+      uint16_t prepareXTEAEncryption();
 
     private:
-      uint16_t encrypted_size;
-      NetworkMessage* msg;
+      // buffers
+      uint8_t content_buffer[WRAPPER_MAX_BODY_SIZE];      
       uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
-      uint16_t w_size;
-      
+
+      // sizes
+      uint16_t encrypted_size;
+      uint16_t content_size;
+      uint16_t wrapper_size;
+
       bool canWrite(const uint32_t size) const {
         return size < WRAPPER_MAX_BODY_SIZE;
       };

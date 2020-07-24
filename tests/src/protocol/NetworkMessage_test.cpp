@@ -12,7 +12,7 @@ void validateMessage(T value) {
   CHECK(msg.read<T>() == value);
 }
 
-TEST_SUITE("NetworkMessage Test") {
+TEST_SUITE("NetworkMessage") {
   TEST_CASE("NetworkMessage write/read uint8_t") {
     uint8_t value = '[';
     validateMessage<uint8_t>(value);
@@ -140,65 +140,5 @@ TEST_SUITE("NetworkMessage Test") {
     CHECK_EQ(final_msg->data_type(), CanaryLib::Data_PlayerData);
     CHECK_EQ(final_msg->data_as_PlayerData()->name()->c_str(), nameStr);
     CHECK_EQ(final_msg->data_as_PlayerData()->id(), id);
-  }
-  TEST_CASE("Flatbuffer wrapper test") {
-    struct Position {
-      uint16_t x = 0;
-    };
-
-    // Const variables for testing purpose
-    std::string name = "Mr. Someone";
-    uint32_t id = 3294967295;
-    Position pos{63201};
-
-    // Create the default message that will be our buffer
-    CanaryLib::NetworkMessage msg;
-    msg.write<uint32_t>(id);
-    msg.writeString(name);
-    msg.write<Position>(pos);
-
-    // wrapping
-    CanaryLib::FlatbuffersWrapper wrapper(&msg);
-    wrapper.encryptXTEA();
-    wrapper.createFlatbuffers();
-
-    // validation
-    uint16_t size = wrapper.message()->getLength();
-    uint16_t w_size = wrapper.size();
-    uint16_t encrypted_size = wrapper.encryptedSize();
-    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
-
-    // validate message mutation
-    CHECK_EQ(msg.getLength(), size);
-
-    // Validade header
-    auto final = CanaryLib::GetEncryptedMessage(wrapper.body());
-    CHECK_EQ(final->header()->checksum(), checksum);
-    CHECK_EQ(final->header()->size(), size);
-    CHECK_EQ(final->header()->encrypted_size(), encrypted_size);
-
-    // Validate Size
-    CHECK_EQ(final->data()->size(), size);
-
-    // Receive message from flatbuffers wrapper
-    CanaryLib::NetworkMessage output;
-    CanaryLib::FlatbuffersWrapper iWrapper(&output);
-    iWrapper.copy(wrapper.buffer());
-    iWrapper.writeMessage();
-
-    // Validate checksum before decrypt
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
-    CHECK_EQ(recvChecksum, final->header()->checksum());
-
-    // Decrypt
-    iWrapper.decryptXTEA();
-
-    // Validade buffer position (must be initial pos)
-    CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
-
-    // Validade decrypted message values
-    CHECK_EQ(output.read<uint32_t>(), id);
-    CHECK_EQ(output.readString(), name);
-    CHECK_EQ(output.read<Position>().x, pos.x);
   }
 }
