@@ -6,7 +6,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     std::string randomMsg = std::string((char *) buffer);
 
     CanaryLib::NetworkMessage msg;
-    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_OPERATION_PEEK);
 
     CanaryLib::FlatbuffersWrapper wrapper(msg);
 
@@ -72,7 +72,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     std::string randomMsg = std::string((char *) buffer);
 
     CanaryLib::NetworkMessage msg;
-    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_OPERATION_PEEK);
 
     CanaryLib::FlatbuffersWrapper wrapper(msg);
 

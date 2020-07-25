@@ -57,7 +57,7 @@ namespace CanaryLib {
   // Writes the content into a raw message
   void FlatbuffersWrapper::toRawMessage(NetworkMessage& output) {
     output.reset();
-    output.write(content_buffer, content_size, MESSAGE_INCREMENT_SIZE);
+    output.write(content_buffer, content_size, MESSAGE_OPERATION_PEEK);
   }
 
   void FlatbuffersWrapper::decryptXTEA() {

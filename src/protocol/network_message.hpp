@@ -25,10 +25,9 @@
 #include "general.hpp"
 
 namespace CanaryLib {
-	enum MessageIncrementType {
-    MESSAGE_INCREMENT_BUFFER_AND_SIZE,
-    MESSAGE_INCREMENT_BUFFER,
-    MESSAGE_INCREMENT_SIZE
+	enum MessageOperationType {
+    MESSAGE_OPERATION_STANDARD,
+    MESSAGE_OPERATION_PEEK
 	};
 
   struct NetworkMessageInfo {
@@ -95,8 +94,8 @@ namespace CanaryLib {
          *  Message Read manipulators
          **/
       template<typename T>
-      T read(size_t size = 0) {
-        if (size == 0) size = sizeof(T);
+      T read(const MessageOperationType opType = MESSAGE_OPERATION_STANDARD) {
+        size_t size = sizeof(T);
 
         if(!canRead(size)) {
           return T();
@@ -104,34 +103,35 @@ namespace CanaryLib {
 
         T value;
         memcpy(&value, m_buffer + m_info.m_bufferPos, size);
-        m_info.m_bufferPos += size;
+        
+        if (opType != MESSAGE_OPERATION_PEEK) m_info.m_bufferPos += size;
 
         return value;
       }
 
       // temporary, try migrate to write
-      uint8_t readByte();
+      uint8_t readByte(const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       // temporary, try to migrate to write
-      std::string readString(uint16_t stringLen = 0);
+      std::string readString(uint16_t stringLen = 0, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
       
         /**
          *  Message Write manipulators
          **/
-      void write(const void* bytes, const size_t size, const MessageIncrementType increment = MESSAGE_INCREMENT_BUFFER_AND_SIZE);
+      void write(const void* bytes, const size_t size, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       template<typename T>
-      void write(const T value) {
-        write(&value, sizeof(T));
+      void write(const T value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD) {
+        write(&value, sizeof(T), opType);
       }
 
       // temporary, migrate to write
-      void writeByte(uint8_t value);
+      void writeByte(uint8_t value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       void writePaddingBytes(const size_t n);
 
       // temporary, try to migrate to write
-      void writeString(const std::string& value);
+      void writeString(const std::string& value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
       
       void reset() {
          m_info = {}; 

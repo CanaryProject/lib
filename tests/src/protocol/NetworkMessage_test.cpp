@@ -49,7 +49,7 @@ TEST_SUITE("NetworkMessage") {
     msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.readString(), name);
     CHECK_EQ(output.read<uint32_t>(), id);
   }
@@ -61,15 +61,11 @@ TEST_SUITE("NetworkMessage") {
     msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
     output.reset();
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_BUFFER);
-    CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + sizeof(uint32_t));
-    CHECK_EQ(output.getLength(), 0);
-    output.reset();
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_BUFFER_AND_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_STANDARD);
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + sizeof(uint32_t));
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
   }
