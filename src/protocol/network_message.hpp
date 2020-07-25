@@ -154,21 +154,32 @@ namespace CanaryLib {
       void encryptXTEA();
 
       uint8_t* getOutputBuffer() {
-        return m_buffer + outputBufferStart;
+        return m_buffer + m_info.m_headerPos;
       }
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
+
+      void writeMessageLength() {
+        add_header(m_info.m_messageSize);
+      }
+
+      void addCryptoHeader(bool addChecksum, uint32_t checksum) {
+        if (addChecksum) {
+          add_header(checksum);
+        }
+
+        writeMessageLength();
+      }
       
     protected:
       NetworkMessageInfo m_info;
 		  uint8_t m_buffer[NETWORKMESSAGE_MAXSIZE];
-		  MsgSize_t outputBufferStart = MAX_HEADER_SIZE;
 
       template <typename T>
       void add_header(T add) {
-        assert(outputBufferStart >= sizeof(T));
-        outputBufferStart -= sizeof(T);
-        memcpy(m_buffer + outputBufferStart, &add, sizeof(T));
+        assert(m_info.m_headerPos >= sizeof(T));
+        m_info.m_headerPos -= sizeof(T);
+        memcpy(m_buffer + m_info.m_headerPos, &add, sizeof(T));
         //added header size to the message size
         m_info.m_messageSize += sizeof(T);
       }
@@ -185,7 +196,6 @@ namespace CanaryLib {
       };
 
       uint8_t* getCurrentBuffer() { return m_buffer + m_info.m_bufferPos; }
-      uint8_t* getHeaderBuffer() { return m_buffer + m_info.m_headerPos; }
       uint8_t* getDataBuffer() { return m_buffer + CanaryLib::MAX_HEADER_SIZE; }
   };
 }
