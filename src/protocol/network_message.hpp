@@ -168,9 +168,9 @@ namespace CanaryLib {
         writeMessageLength();
       }
 
-      bool readChecksum() {
+      bool readChecksum(int32_t len = 0) {
         uint32_t recvChecksum = read<uint32_t>();
-        int32_t len = m_info.m_messageSize - m_info.m_bufferPos;
+        len = (len == 0 ? m_info.m_messageSize - m_info.m_bufferPos : len);
         uint32_t checksum = (len > 0) ? NetworkMessage::getChecksum(m_buffer + m_info.m_bufferPos, len) : 0;
 
         return recvChecksum == checksum;
