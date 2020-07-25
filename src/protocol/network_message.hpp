@@ -164,14 +164,18 @@ namespace CanaryLib {
       }
 
       void addCryptoHeader() {
-        add_header(NetworkMessage::getChecksum(getOutputBuffer(), getLength()));
+        add_header(getChecksum(getOutputBuffer(), getLength()));
         writeMessageLength();
       }
 
-      bool readChecksum(int32_t len = 0) {
+      bool readChecksum() {
+        uint32_t checksum = 0;
         uint32_t recvChecksum = read<uint32_t>();
-        len = (len == 0 ? m_info.m_messageSize - m_info.m_bufferPos : len);
-        uint32_t checksum = (len > 0) ? NetworkMessage::getChecksum(m_buffer + m_info.m_bufferPos, len) : 0;
+        uint32_t len = m_info.m_messageSize - m_info.m_bufferPos;
+        
+        if (len > 0) {
+          checksum = getChecksum(m_buffer + m_info.m_bufferPos, len);
+        }
 
         return recvChecksum == checksum;
       }
