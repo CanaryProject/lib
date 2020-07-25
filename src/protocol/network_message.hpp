@@ -183,6 +183,10 @@ namespace CanaryLib {
       bool canWrite(const uint32_t size) const {
         return (size + m_info.m_bufferPos) < MAX_BODY_LENGTH;
       };
+
+      uint8_t* getCurrentBuffer() { return m_buffer + m_info.m_bufferPos; }
+      uint8_t* getHeaderBuffer() { return m_buffer + m_info.m_headerPos; }
+      uint8_t* getDataBuffer() { return m_buffer + CanaryLib::MAX_HEADER_SIZE; }
   };
 }
 
