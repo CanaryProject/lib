@@ -22,6 +22,8 @@
 #define CANARY_LIB_CRYPT_XTEA_H
 
 #include <iostream>
+#include <random>
+
 #include "../pch.hpp"
 
 namespace CanaryLib {
@@ -39,11 +41,16 @@ namespace CanaryLib {
         return instance;
       }
 
-      void decrypt(uint16_t length, uint8_t* buffer) const;
-      void encrypt(uint16_t length, uint8_t* buffer) const;
+      const uint32_t* getKey() {
+        return key;
+      }
       void setKey(const uint32_t* k) {
 			  memcpy(key, k, sizeof(*k) * 4);
       };
+
+      void decrypt(uint16_t length, uint8_t* buffer) const;
+      void encrypt(uint16_t length, uint8_t* buffer) const;
+      const uint32_t* generateKey();
 
     private:
 		  uint32_t key[4] = {};
