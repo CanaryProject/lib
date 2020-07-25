@@ -163,11 +163,8 @@ namespace CanaryLib {
         add_header(m_info.m_messageSize);
       }
 
-      void addCryptoHeader(bool addChecksum, uint32_t checksum) {
-        if (addChecksum) {
-          add_header(checksum);
-        }
-
+      void addCryptoHeader() {
+        add_header(NetworkMessage::getChecksum(getOutputBuffer(), getLength()));
         writeMessageLength();
       }
       
@@ -179,7 +176,7 @@ namespace CanaryLib {
       void add_header(T add) {
         assert(m_info.m_headerPos >= sizeof(T));
         m_info.m_headerPos -= sizeof(T);
-        memcpy(m_buffer + m_info.m_headerPos, &add, sizeof(T));
+        memcpy(getOutputBuffer(), &add, sizeof(T));
         //added header size to the message size
         m_info.m_messageSize += sizeof(T);
       }
