@@ -171,7 +171,7 @@ namespace CanaryLib {
       bool readChecksum() {
         uint32_t checksum = 0;
         uint32_t recvChecksum = read<uint32_t>();
-        uint32_t len = m_info.m_messageSize - m_info.m_bufferPos;
+        uint32_t len = m_info.m_messageSize - (HEADER_LENGTH + CHECKSUM_LENGTH);
         
         if (len > 0) {
           checksum = getChecksum(m_buffer + m_info.m_bufferPos, len);
