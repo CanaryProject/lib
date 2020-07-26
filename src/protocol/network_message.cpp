@@ -85,14 +85,14 @@ namespace CanaryLib {
     if ((contentLength & 7) != 0) {
       return false;
     }
-    uint8_t* buffer = getBuffer() + getBufferPosition();
     
-    XTEA().decrypt(contentLength, buffer);
+    XTEA().decrypt(contentLength, getCurrentBuffer());
 
     uint16_t innerLength = read<uint16_t>();
     if (innerLength > contentLength - 2) {
       return false;
     }
+    
     setLength(innerLength);
 
     return true;
