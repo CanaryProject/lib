@@ -77,7 +77,7 @@ TEST_SUITE("NetworkMessage") {
       msg.writePaddingBytes(i);
       CHECK_EQ(msg.getLength(), i);
     }
-    CHECK_EQ(msg.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
+    CHECK_EQ(msg.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + n);
   }
   TEST_CASE("NetworkMessage skip") {
     CanaryLib::NetworkMessage msg;
