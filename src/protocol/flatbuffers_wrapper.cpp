@@ -60,13 +60,13 @@ namespace CanaryLib {
     output.write(content_buffer, content_size, MESSAGE_OPERATION_PEEK);
   }
 
-  void FlatbuffersWrapper::decryptXTEA() {
-    XTEA().decrypt(content_size, content_buffer);
+  void FlatbuffersWrapper::decryptXTEA(XTEA xtea) {
+    xtea.decrypt(content_size, content_buffer);
   }
 
-  void FlatbuffersWrapper::encryptXTEA() {
+  void FlatbuffersWrapper::encryptXTEA(XTEA xtea) {
     prepareXTEAEncryption();
-    XTEA().encrypt(content_size, content_buffer);
+    xtea.encrypt(content_size, content_buffer);
     encrypted_size = content_size;
   }
 

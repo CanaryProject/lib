@@ -80,13 +80,13 @@ namespace CanaryLib {
     if (opType == MESSAGE_OPERATION_PEEK) m_info.m_bufferPos -= sizeof(uint16_t);
   };
 
-  bool NetworkMessage::decryptXTEA(ChecksumMethods_t checksumMethod) {
+  bool NetworkMessage::decryptXTEA(XTEA xtea, ChecksumMethods_t checksumMethod) {
     uint16_t contentLength = getLength() - (checksumMethod == CHECKSUM_METHOD_NONE ? 2 : 6);
     if ((contentLength & 7) != 0) {
       return false;
     }
     
-    XTEA().decrypt(contentLength, getCurrentBuffer());
+    xtea.decrypt(contentLength, getCurrentBuffer());
 
     uint16_t innerLength = read<uint16_t>();
     if (innerLength > contentLength - 2) {
@@ -98,14 +98,14 @@ namespace CanaryLib {
     return true;
   }
 
-  void NetworkMessage::encryptXTEA() {
+  void NetworkMessage::encryptXTEA(XTEA xtea) {
     // The message must be a multiple of 8
     size_t paddingBytes = getLength() & 7;
     if (paddingBytes != 0) {
       writePaddingBytes(8 - paddingBytes);
     }
 
-    XTEA().encrypt(getLength(), getOutputBuffer());
+    xtea.encrypt(getLength(), getOutputBuffer());
   }
 
   uint32_t NetworkMessage::getChecksum(const uint8_t* data, size_t length) {

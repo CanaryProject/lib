@@ -31,15 +31,12 @@ namespace CanaryLib {
   class XTEA {
     public:
       XTEA() {}
-
-      XTEA(const XTEA&) = delete;
-      XTEA& operator=(const XTEA&) = delete;
-
-      static XTEA& getInstance() {
-        static XTEA instance; // Guaranteed to be destroyed.
-                              // Instantiated on first use.
-        return instance;
+      XTEA(const uint32_t* key) {
+        setKey(key);
       }
+
+      // Can't copy, your xtea is unique
+      XTEA& operator=(const XTEA&) = delete;
 
       const uint32_t* getKey() {
         return key;
@@ -55,7 +52,6 @@ namespace CanaryLib {
     private:
 		  uint32_t key[4] = {};
   };  
-  constexpr auto XTEA = &XTEA::getInstance;
 }
 
 #endif

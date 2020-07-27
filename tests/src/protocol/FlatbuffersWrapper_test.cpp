@@ -84,15 +84,16 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Encrypt/Decrypt XTEA") {
+    CanaryLib::XTEA xtea;
     uint8_t buffer[512] = "Random buf";
     std::string randomMsg = std::string((char *) buffer);
 
     CanaryLib::FlatbuffersWrapper wrapper(buffer, randomMsg.size());
 
-    wrapper.encryptXTEA();
+    wrapper.encryptXTEA(xtea);
     CHECK_EQ(wrapper.contentSize() % 8, 0);
     CHECK_NE(std::string((char *) wrapper.content()), randomMsg);
-    wrapper.decryptXTEA();
+    wrapper.decryptXTEA(xtea);
 
     uint8_t padding = (8 - randomMsg.size() % 8);
 
@@ -135,6 +136,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Flatbuffer wrap message") {
+    CanaryLib::XTEA xtea;
     struct Position {
       uint16_t x = 0;
     };
@@ -152,7 +154,7 @@ TEST_SUITE("FlatbuffersWrapper") {
 
     // wrapping
     CanaryLib::FlatbuffersWrapper wrapper(msg);
-    wrapper.encryptXTEA();
+    wrapper.encryptXTEA(xtea);
     wrapper.buildFlatbuffers();
 
     // validation
@@ -178,7 +180,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK_EQ(recvChecksum, final->header()->checksum());
 
     // Decrypt
-    outWrapper.decryptXTEA();
+    outWrapper.decryptXTEA(xtea);
     outWrapper.toRawMessage(output);
 
     // Validade decrypted message values
@@ -188,6 +190,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Flatbuffer wrap random buffer test") {
+    CanaryLib::XTEA xtea;
     uint8_t buffer[512];
     std::string randomMsg = "This is a random msg.";
     uint16_t size = randomMsg.size();
@@ -195,7 +198,7 @@ TEST_SUITE("FlatbuffersWrapper") {
 
     // wrapping
     CanaryLib::FlatbuffersWrapper wrapper(buffer, size);
-    wrapper.encryptXTEA();
+    wrapper.encryptXTEA(xtea);
     wrapper.buildFlatbuffers(CanaryLib::ContentFormat_Flatbuffers);
 
     // validation
@@ -221,7 +224,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK_EQ(recvChecksum, final->header()->checksum());
 
     // Decrypt
-    outWrapper.decryptXTEA();
+    outWrapper.decryptXTEA(xtea);
     char outputMsg[512];
 
     uint8_t padding = (8 - randomMsg.size() % 8);

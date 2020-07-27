@@ -83,8 +83,8 @@ namespace CanaryLib {
       void writeSize(uint16_t size);
 
       // Content manipulators
-      void decryptXTEA();
-      void encryptXTEA();
+      void decryptXTEA(XTEA xtea);
+      void encryptXTEA(XTEA xtea);
       uint16_t prepareXTEAEncryption();
 
     private:

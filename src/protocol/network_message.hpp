@@ -150,8 +150,8 @@ namespace CanaryLib {
          *  Message Manipulators tools
          **/
       // XTEA
-      bool decryptXTEA(ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
-      void encryptXTEA();
+      bool decryptXTEA(XTEA xtea, ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
+      void encryptXTEA(XTEA xtea);
 
       uint8_t* getOutputBuffer() {
         return m_buffer + m_info.m_headerPos;
@@ -163,9 +163,8 @@ namespace CanaryLib {
         add_header(m_info.m_messageSize);
       }
 
-      void addCryptoHeader() {
+      void writeChecksum() {
         add_header(getChecksum(getOutputBuffer(), getLength()));
-        writeMessageLength();
       }
 
       bool readChecksum() {
@@ -179,6 +178,8 @@ namespace CanaryLib {
 
         return recvChecksum == checksum;
       }
+
+      uint8_t* getCurrentBuffer() { return m_buffer + m_info.m_bufferPos; }
       
     protected:
       NetworkMessageInfo m_info;
@@ -204,7 +205,6 @@ namespace CanaryLib {
         return (size + m_info.m_bufferPos) < MAX_BODY_LENGTH;
       };
 
-      uint8_t* getCurrentBuffer() { return m_buffer + m_info.m_bufferPos; }
       uint8_t* getDataBuffer() { return m_buffer + CanaryLib::MAX_HEADER_SIZE; }
   };
 }
