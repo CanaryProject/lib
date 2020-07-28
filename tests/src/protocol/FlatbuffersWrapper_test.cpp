@@ -1,86 +1,85 @@
 #include "../all.h"
 
 TEST_SUITE("FlatbuffersWrapper") {
-  TEST_CASE("Initialize wrapper with msg") {
-    uint8_t buffer[512] = "Random buf";
-    std::string randomMsg = std::string((char *) buffer);
-
-    CanaryLib::NetworkMessage msg;
-    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_OPERATION_PEEK);
-
-    CanaryLib::FlatbuffersWrapper wrapper(msg);
-
-    CHECK_EQ(wrapper.contentSize(), msg.getLength());
-    CHECK_EQ(std::string((char *) wrapper.content()), randomMsg);
-  }
-
-  TEST_CASE("Initialize wrapper with buffer and size") {
-    uint8_t buffer[512] = "Random buf";
-    std::string randomMsg = std::string((char *) buffer);
-
-    CanaryLib::FlatbuffersWrapper wrapper(buffer, randomMsg.size());
-
-    CHECK_EQ(wrapper.contentSize(), randomMsg.size());
-    CHECK_EQ(std::string((char *) wrapper.content()), randomMsg);
-  }
-
-  TEST_CASE("Copy wrappers") {
+  TEST_CASE("Copy wrappers - serialized defaults to true") {
     CanaryLib::FlatbuffersWrapper wrapper1;
     CanaryLib::FlatbuffersWrapper wrapper2;
 
-    wrapper1.buildFlatbuffers();
+    wrapper1.serialize();
     wrapper2.copy(wrapper1.buffer());
 
     CHECK_EQ(wrapper1.size(), wrapper2.size());
+    CHECK(wrapper2.isSerialized());
   }
 
-  TEST_CASE("BuildFlatbuffers") {
+  TEST_CASE("SetSize") {
+    uint16_t size = 64000;
+    uint16_t newSize = 3241;
+    CanaryLib::FlatbuffersWrapper wrapper1;
+    wrapper1.setSize(size);
+    CHECK_EQ(wrapper1.size(), size);
+    wrapper1.serialize();
+    size = wrapper1.size();
+    wrapper1.setSize(newSize);
+    CHECK_EQ(wrapper1.size(), size);
+    wrapper1.deserialize();
+    wrapper1.setSize(newSize);
+    CHECK_EQ(wrapper1.size(), newSize);
+  }
+
+  TEST_CASE("Serialize") {
     CanaryLib::FlatbuffersWrapper wrapper1;
 
-    wrapper1.buildFlatbuffers();
-    auto encryptedMsg = wrapper1.loadFlatbuffers();
+    uint32_t checksum = wrapper1.checksum();
+    wrapper1.serialize();
+
+    CHECK(wrapper1.isSerialized());
+    
+    auto encryptedMsg = wrapper1.buildEncryptedMessage();
     auto header = encryptedMsg->header();
     CHECK_EQ(header->size(), 0);
-    CHECK_EQ(header->checksum(), CanaryLib::NetworkMessage::getChecksum(wrapper1.content(), wrapper1.contentSize()));
-    CHECK_EQ(header->encrypted_size(), 0);
-    CHECK_EQ(header->format(), CanaryLib::ContentFormat_RawMessage);
+    CHECK_EQ(header->checksum(), checksum);
+
+    CHECK_THROWS_AS(wrapper1.serialize(), std::domain_error);
   }
 
-  TEST_CASE("BuildFlatbuffers with format") {
+  TEST_CASE("Deserialize") {
     CanaryLib::FlatbuffersWrapper wrapper1;
+    std::string str = std::string("myMsg");
+    wrapper1.write(str.c_str(), str.size());
+    wrapper1.serialize();
+    wrapper1.deserialize();
 
-    wrapper1.buildFlatbuffers(CanaryLib::ContentFormat_Flatbuffers);
-    auto encryptedMsg = wrapper1.loadFlatbuffers();
-    auto header = encryptedMsg->header();
-    CHECK_EQ(header->size(), 0);
-    CHECK_EQ(header->checksum(), CanaryLib::NetworkMessage::getChecksum(wrapper1.content(), wrapper1.contentSize()));
-    CHECK_EQ(header->encrypted_size(), 0);
-    CHECK_EQ(header->format(), CanaryLib::ContentFormat_Flatbuffers);
+    CHECK_FALSE(wrapper1.isSerialized());
+    CHECK_EQ(std::string((char *) wrapper1.body()), str);
+    CHECK_EQ(wrapper1.size(), str.size());
+
+    CHECK_THROWS_AS(wrapper1.deserialize(), std::domain_error);
   }
 
-  TEST_CASE("LoadFlatbuffers") {
+  TEST_CASE("buildEncryptedMessage") {
     CanaryLib::FlatbuffersWrapper wrapper1;
+    std::string str = std::string("myMsg");
+    wrapper1.write(str.c_str(), str.size());
 
-    wrapper1.buildFlatbuffers(CanaryLib::ContentFormat_Flatbuffers);
-    auto encryptedMsg = wrapper1.loadFlatbuffers();
+    wrapper1.serialize();
+    auto encryptedMsg = wrapper1.buildEncryptedMessage();
 
-    CHECK_EQ(encryptedMsg->header()->encrypted_size(), wrapper1.contentSize());
+    CHECK_EQ(encryptedMsg->header()->size(), str.size());
+    CHECK_EQ(encryptedMsg->header()->checksum(), CanaryLib::NetworkMessage::getChecksum((uint8_t *) str.c_str(), str.size()));
+    CHECK_EQ(std::string((char *) encryptedMsg->body()->data()), str);
   }
 
-  TEST_CASE("ToRawMessage") {
-    uint8_t buffer[512] = "Random buf";
-    std::string randomMsg = std::string((char *) buffer);
+  TEST_CASE("buildRawMessage") {
+    std::string randomMsg = std::string("myMsg");
 
-    CanaryLib::NetworkMessage msg;
-    msg.write(buffer, randomMsg.size(), CanaryLib::MESSAGE_OPERATION_PEEK);
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(randomMsg.c_str(), randomMsg.size());
 
-    CanaryLib::FlatbuffersWrapper wrapper(msg);
+    CanaryLib::NetworkMessage output = wrapper.buildRawMessage();
 
-    CanaryLib::NetworkMessage output;
-    wrapper.toRawMessage(output);
-
-    CHECK_EQ(output.getLength(), msg.getLength());
-    CHECK_EQ(output.readString(output.getLength()), msg.readString(msg.getLength()));
+    CHECK_EQ(output.getLength(), randomMsg.size());
+    CHECK_EQ(std::string((char *) output.getDataBuffer()).c_str(), randomMsg);
   }
 
   TEST_CASE("Encrypt/Decrypt XTEA") {
@@ -88,19 +87,20 @@ TEST_SUITE("FlatbuffersWrapper") {
     uint8_t buffer[512] = "Random buf";
     std::string randomMsg = std::string((char *) buffer);
 
-    CanaryLib::FlatbuffersWrapper wrapper(buffer, randomMsg.size());
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(buffer, randomMsg.size());
 
     wrapper.encryptXTEA(xtea);
-    CHECK_EQ(wrapper.contentSize() % 8, 0);
-    CHECK_NE(std::string((char *) wrapper.content()), randomMsg);
+    CHECK_EQ(wrapper.size() % 8, 0);
+    CHECK_NE(std::string((char *) wrapper.body()), randomMsg);
     wrapper.decryptXTEA(xtea);
 
     uint8_t padding = (8 - randomMsg.size() % 8);
 
     char output[512];
-    memcpy(output, wrapper.content(), wrapper.contentSize() - padding);
+    memcpy(output, wrapper.body(), wrapper.size() - padding);
 
-    CHECK_EQ(wrapper.contentSize(), randomMsg.size() + padding);
+    CHECK_EQ(wrapper.size(), randomMsg.size() + padding);
     CHECK_EQ(std::string(output), randomMsg);
   }
 
@@ -108,21 +108,41 @@ TEST_SUITE("FlatbuffersWrapper") {
     uint8_t buffer[512] = "Random buf";
     std::string randomMsg = std::string((char *) buffer);
 
-    CanaryLib::FlatbuffersWrapper wrapper(buffer, randomMsg.size());
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(buffer, randomMsg.size());
     uint16_t size = wrapper.prepareXTEAEncryption();
 
     CHECK_EQ(size, randomMsg.size() + (8 - randomMsg.size() % 8));
   }
 
   TEST_CASE("Write") {
-    uint8_t buffer[512] = "Random buf";
-    std::string randomMsg = std::string((char *) buffer);
+    std::string randomMsg = std::string("myMsg");
 
     CanaryLib::FlatbuffersWrapper wrapper;
-    wrapper.write(buffer, randomMsg.size());
+    wrapper.write(randomMsg.c_str(), randomMsg.size());
 
     CHECK_EQ(wrapper.size(), randomMsg.size());
-    CHECK_EQ(std::string((char *) wrapper.buffer() + CanaryLib::WRAPPER_HEADER_SIZE), randomMsg);
+    CHECK_EQ(std::string((char *) wrapper.body()), randomMsg);
+  }
+
+  TEST_CASE("Write - append") {
+    uint8_t buffer[4] = { 1, 2, 3, 4 };
+
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(buffer, 4);
+    wrapper.write(buffer, 4, true);
+
+    // shouldn't write serialized
+    wrapper.serialize();
+    wrapper.write(buffer, 4, true);
+    wrapper.deserialize();
+    
+    uint8_t buffer2[8] = { 1, 2, 3, 4, 1, 2, 3, 4 };
+    
+    CHECK_EQ(wrapper.size(), 8);
+    for (uint8_t i = 0; i < wrapper.size(); i++) {
+      CHECK_EQ(wrapper.body()[i], buffer2[i]);
+    }
   }
 
   TEST_CASE("WriteSize") {
@@ -153,35 +173,34 @@ TEST_SUITE("FlatbuffersWrapper") {
     msg.write<Position>(pos);
 
     // wrapping
-    CanaryLib::FlatbuffersWrapper wrapper(msg);
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(msg.getDataBuffer(), msg.getLength());
     wrapper.encryptXTEA(xtea);
-    wrapper.buildFlatbuffers();
 
     // validation
-    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(wrapper.content(), wrapper.contentSize());
+    uint32_t checksum = wrapper.checksum();
+    uint32_t size = wrapper.size();
+
+    wrapper.serialize();
 
     // Validade header
-    auto final = CanaryLib::GetEncryptedMessage(wrapper.body());
-    CHECK_EQ(final->header()->checksum(), checksum);
-    CHECK_EQ(final->header()->size(), wrapper.contentSize());
-    CHECK_EQ(final->header()->encrypted_size(), wrapper.encryptedSize());
-    CHECK_EQ(final->header()->format(), CanaryLib::ContentFormat_RawMessage);
-
-    // Validate Size
-    CHECK_EQ(final->data()->size(), wrapper.contentSize());
+    auto enc_msg = wrapper.buildEncryptedMessage();
+    CHECK_EQ(enc_msg->header()->checksum(), checksum);
+    CHECK_EQ(enc_msg->header()->size(), size);
 
     // Receive message from flatbuffers wrapper
-    CanaryLib::FlatbuffersWrapper outWrapper(wrapper.buffer());
-    CanaryLib::NetworkMessage output;
-    outWrapper.toRawMessage(output);
+    CanaryLib::FlatbuffersWrapper outWrapper;
+    outWrapper.copy(wrapper.buffer(), true);
+    outWrapper.deserialize();
+    CanaryLib::NetworkMessage output = outWrapper.buildRawMessage();
 
     // Validate checksum before decrypt
     uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
-    CHECK_EQ(recvChecksum, final->header()->checksum());
+    CHECK_EQ(recvChecksum, enc_msg->header()->checksum());
 
     // Decrypt
     outWrapper.decryptXTEA(xtea);
-    outWrapper.toRawMessage(output);
+    output = outWrapper.buildRawMessage();
 
     // Validade decrypted message values
     CHECK_EQ(output.read<uint32_t>(), id);
@@ -197,31 +216,30 @@ TEST_SUITE("FlatbuffersWrapper") {
     memcpy(buffer, randomMsg.c_str(), size);
 
     // wrapping
-    CanaryLib::FlatbuffersWrapper wrapper(buffer, size);
+    CanaryLib::FlatbuffersWrapper wrapper;
+    wrapper.write(buffer, size);
     wrapper.encryptXTEA(xtea);
-    wrapper.buildFlatbuffers(CanaryLib::ContentFormat_Flatbuffers);
 
     // validation
-    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(wrapper.content(), wrapper.contentSize());
+    uint32_t checksum = wrapper.checksum();
+    size = wrapper.size();
+
+    wrapper.serialize();
 
     // Validade header
-    auto final = CanaryLib::GetEncryptedMessage(wrapper.body());
-    CHECK_EQ(final->header()->checksum(), checksum);
-    CHECK_EQ(final->header()->size(), wrapper.contentSize());
-    CHECK_EQ(final->header()->encrypted_size(), wrapper.encryptedSize());
-    CHECK_EQ(final->header()->format(), CanaryLib::ContentFormat_Flatbuffers);
-
-    // Validate Size
-    CHECK_EQ(final->data()->size(), wrapper.contentSize());
+    auto enc_msg = CanaryLib::GetEncryptedMessage(wrapper.body());
+    CHECK_EQ(enc_msg->header()->checksum(), checksum);
+    CHECK_EQ(enc_msg->header()->size(), size);
 
     // Receive message from flatbuffers wrapper
-    CanaryLib::FlatbuffersWrapper outWrapper(wrapper.buffer());
-    CanaryLib::NetworkMessage output;
-    outWrapper.toRawMessage(output);
+    CanaryLib::FlatbuffersWrapper outWrapper;
+    outWrapper.copy(wrapper.buffer(), true);
+    outWrapper.deserialize();
+    CanaryLib::NetworkMessage output = outWrapper.buildRawMessage();
 
     // Validate checksum before decrypt
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(outWrapper.content(), outWrapper.contentSize());
-    CHECK_EQ(recvChecksum, final->header()->checksum());
+    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(outWrapper.body(), outWrapper.size());
+    CHECK_EQ(recvChecksum, enc_msg->header()->checksum());
 
     // Decrypt
     outWrapper.decryptXTEA(xtea);
@@ -229,8 +247,8 @@ TEST_SUITE("FlatbuffersWrapper") {
 
     uint8_t padding = (8 - randomMsg.size() % 8);
 
-    memcpy(outputMsg, outWrapper.content(), outWrapper.contentSize() - padding);
-    CHECK_EQ(outWrapper.contentSize(), randomMsg.size() + padding);
+    memcpy(outputMsg, outWrapper.body(), outWrapper.size() - padding);
+    CHECK_EQ(outWrapper.size(), randomMsg.size() + padding);
     CHECK_EQ(std::string(outputMsg), randomMsg);
   }
 }

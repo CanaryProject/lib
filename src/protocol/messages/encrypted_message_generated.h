@@ -17,20 +17,20 @@ struct EncryptedMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef EncryptedMessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_HEADER = 4,
-    VT_DATA = 6
+    VT_BODY = 6
   };
   const CanaryLib::Header *header() const {
     return GetPointer<const CanaryLib::Header *>(VT_HEADER);
   }
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  const flatbuffers::Vector<uint8_t> *body() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_HEADER) &&
            verifier.VerifyTable(header()) &&
-           VerifyOffset(verifier, VT_DATA) &&
-           verifier.VerifyVector(data()) &&
+           VerifyOffset(verifier, VT_BODY) &&
+           verifier.VerifyVector(body()) &&
            verifier.EndTable();
   }
 };
@@ -42,8 +42,8 @@ struct EncryptedMessageBuilder {
   void add_header(flatbuffers::Offset<CanaryLib::Header> header) {
     fbb_.AddOffset(EncryptedMessage::VT_HEADER, header);
   }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
-    fbb_.AddOffset(EncryptedMessage::VT_DATA, data);
+  void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
+    fbb_.AddOffset(EncryptedMessage::VT_BODY, body);
   }
   explicit EncryptedMessageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -59,9 +59,9 @@ struct EncryptedMessageBuilder {
 inline flatbuffers::Offset<EncryptedMessage> CreateEncryptedMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<CanaryLib::Header> header = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0) {
   EncryptedMessageBuilder builder_(_fbb);
-  builder_.add_data(data);
+  builder_.add_body(body);
   builder_.add_header(header);
   return builder_.Finish();
 }
@@ -69,12 +69,12 @@ inline flatbuffers::Offset<EncryptedMessage> CreateEncryptedMessage(
 inline flatbuffers::Offset<EncryptedMessage> CreateEncryptedMessageDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<CanaryLib::Header> header = 0,
-    const std::vector<uint8_t> *data = nullptr) {
-  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+    const std::vector<uint8_t> *body = nullptr) {
+  auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
   return CanaryLib::CreateEncryptedMessage(
       _fbb,
       header,
-      data__);
+      body__);
 }
 
 inline const CanaryLib::EncryptedMessage *GetEncryptedMessage(const void *buf) {

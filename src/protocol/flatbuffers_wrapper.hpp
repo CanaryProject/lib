@@ -30,21 +30,9 @@ namespace CanaryLib {
   class FlatbuffersWrapper {
     public:
       FlatbuffersWrapper() = default;
-      // Initialize wrapper content from a raw message
-      FlatbuffersWrapper(NetworkMessage msg) {
-        content_size = msg.getLength();
-        memcpy(content_buffer, msg.getOutputBuffer(), content_size);
-      }
-      // Initialize wrapper content from a known content buffer and size
-      FlatbuffersWrapper(uint8_t *m_buffer, uint16_t m_size) {
-        content_size = m_size;
-        memcpy(content_buffer, m_buffer, content_size);
-      }
-      // Initialize wrapper content from another wrapper buffer
-      FlatbuffersWrapper(uint8_t *w_buffer) {
-        copy(w_buffer);
-        loadFlatbuffers();
-      }
+
+      // Can't copy, a wrapper its unique
+      XTEA& operator=(const XTEA&) = delete;
 
       // Getters
       uint8_t *buffer() {
@@ -55,31 +43,34 @@ namespace CanaryLib {
         return w_buffer + WRAPPER_HEADER_SIZE;
       }
 
-      uint8_t *content() {
-        return content_buffer;
+      const uint32_t checksum() {
+        return NetworkMessage::getChecksum(body(), wrapper_size);
       }
 
-      uint16_t contentSize() {
-        return content_size;
-      }
-
-      uint16_t encryptedSize() {
-        return encrypted_size;
+      bool isSerialized() {
+        return serialized;
       }
 
       uint16_t size() {
         return wrapper_size;
       }
 
+      void setSize(uint16_t size) {
+        if (serialized) return;
+
+        wrapper_size = 0;
+        writeSize(size);
+      }
+
       // Flatbuffers manipulators
-      void buildFlatbuffers(ContentFormat format = ContentFormat_RawMessage);
-      const EncryptedMessage *loadFlatbuffers();
-      void toRawMessage(NetworkMessage& output);
+      void serialize();
+      void deserialize();
+      const EncryptedMessage *buildEncryptedMessage();
+      NetworkMessage buildRawMessage();
 
       // Wrapper buffer manipulators
-      void copy(const uint8_t *bytes);
-
-      bool write(const void *bytes, uint16_t size);
+      void copy(const uint8_t *bytes, bool isSerialized = true);
+      bool write(const void *bytes, uint16_t size, bool append = false);
       void writeSize(uint16_t size);
 
       // Content manipulators
@@ -88,17 +79,22 @@ namespace CanaryLib {
       uint16_t prepareXTEAEncryption();
 
     private:
-      // buffers
-      uint8_t content_buffer[WRAPPER_MAX_BODY_SIZE];      
       uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
-
-      // sizes
-      uint16_t encrypted_size;
-      uint16_t content_size;
-      uint16_t wrapper_size;
+      uint16_t wrapper_size = 0;
+      bool serialized = false;
 
       bool canWrite(const uint32_t size) const {
-        return size < WRAPPER_MAX_BODY_SIZE;
+        return !serialized && size < WRAPPER_MAX_BODY_SIZE;
       };
   };
 }
+
+/**
+ * Wrapper created -> no buffer, size 0
+ * Ammend raw data (networkmessage)
+ *  wrapper.buffer = databuffer, size += msg_size
+ * Ammend flatbuffer data
+ * 
+ * 
+ *   
+ **/

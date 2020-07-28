@@ -7,7 +7,6 @@ enum ContentFormat:byte {
 
 table Header {
   checksum:uint32 = 0;
-  encrypted_size:uint16 = 0;
   size:uint16 = 0;
   format:ContentFormat = RawMessage;
 }

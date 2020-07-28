@@ -4,6 +4,6 @@ namespace CanaryLib;
 
 table EncryptedMessage {
   header:Header;
-  data:[ubyte];
+  body:[ubyte];
 }
 root_type EncryptedMessage;

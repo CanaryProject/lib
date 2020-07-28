@@ -106,10 +106,16 @@ TEST_SUITE("NetworkMessage") {
     flatbuffers::FlatBufferBuilder fbb;
     auto name = fbb.CreateString(nameStr);
     auto player = CanaryLib::CreatePlayerData(fbb, id, name);
-    fbb.Finish(player);
 
-    uint8_t *buf = fbb.GetBufferPointer();
-    auto message = CanaryLib::CreateMessage(fbb, CanaryLib::Data_PlayerData, player.Union());
+    // union types.
+    std::vector<uint8_t> types;
+    types.push_back(static_cast<uint8_t>(CanaryLib::Data_PlayerData));
+
+    // union values.
+    std::vector<flatbuffers::Offset<void>> data;
+    data.push_back(player.Union());
+
+    auto message = CanaryLib::CreateMessage(fbb, fbb.CreateVector(types), fbb.CreateVector(data));
     fbb.ForceVectorAlignment(fbb.GetSize(), sizeof(uint8_t), 8);
 
     fbb.Finish(message);
@@ -117,9 +123,9 @@ TEST_SUITE("NetworkMessage") {
 
     CHECK_EQ(size % 8, 0);
     
-    buf = fbb.GetBufferPointer();
+    uint8_t *buf = fbb.GetBufferPointer();
 
-    auto header = CanaryLib::CreateHeader(fbb, size, size, size);
+    auto header = CanaryLib::CreateHeader(fbb, size, size);
     auto encrypted_bytes = fbb.CreateVector(buf, size);
 
     auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, encrypted_bytes);
@@ -127,14 +133,18 @@ TEST_SUITE("NetworkMessage") {
 
     auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
     CHECK_EQ(final->header()->checksum(), size);
-    CHECK_EQ(final->header()->encrypted_size(), size);
     CHECK_EQ(final->header()->size(), size);
 
-    const uint8_t* final_data = final->data()->data();
+    const uint8_t* final_data = final->body()->data();
     auto final_msg = CanaryLib::GetMessage(final_data);
-    CHECK(!!final_msg->data());
-    CHECK_EQ(final_msg->data_type(), CanaryLib::Data_PlayerData);
-    CHECK_EQ(final_msg->data_as_PlayerData()->name()->c_str(), nameStr);
-    CHECK_EQ(final_msg->data_as_PlayerData()->id(), id);
+    CHECK(!!final_msg->message_data());
+    CHECK_EQ(final_msg->message_data_type()->size(), 1);
+    CHECK_EQ(final_msg->message_data_type()->GetEnum<CanaryLib::Data>(0), CanaryLib::Data_PlayerData);
+
+    auto d = final_msg->message_data();
+
+    CHECK_EQ(d->size(), 1);
+    CHECK_EQ(d->GetAs<CanaryLib::PlayerData>(0)->name()->str(), nameStr);
+    CHECK_EQ(d->GetAs<CanaryLib::PlayerData>(0)->id(), id);
   }
 }

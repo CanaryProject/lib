@@ -21,81 +21,102 @@
 
 namespace CanaryLib {
   // Copies another wrapper buffer
-  void FlatbuffersWrapper::copy(const uint8_t *bytes) {
+  void FlatbuffersWrapper::copy(const uint8_t *bytes, bool isSerialized) {
+    serialized = false;
+
+    // read size
     uint16_t size;
     memcpy(&size, bytes, WRAPPER_HEADER_SIZE);
     write(bytes + WRAPPER_HEADER_SIZE, size);
+
+    serialized = isSerialized;
   }
 
-  // Build the flatbuffers using the content
-  void FlatbuffersWrapper::buildFlatbuffers(ContentFormat format) {
-    uint32_t recvChecksum = NetworkMessage::getChecksum(content_buffer, content_size);
+  // Serializes the wrapper, closing it to writing
+  void FlatbuffersWrapper::serialize() {
+    if (serialized) {
+      throw std::domain_error("[FlatbuffersWrapper::serialized]: attempt to serialize a serialized buffer.");
+    };
 
-    // Start flabuffer creation
     flatbuffers::FlatBufferBuilder fbb;
-    // create flatbuffer vector with the outputbuffer
-    auto encrypted_bytes = fbb.CreateVector(content_buffer, content_size);
-    // create flatbuffer header
-    auto header = CreateHeader(fbb, recvChecksum, content_size, encrypted_size, format);
-
+    auto encrypted_bytes = fbb.CreateVector(body(), wrapper_size);
+    auto header = CreateHeader(fbb, checksum(), wrapper_size);
     auto encrypted_message = CreateEncryptedMessage(fbb, header, encrypted_bytes);
-    fbb.Finish(encrypted_message);
 
+    fbb.Finish(encrypted_message);
     write(fbb.GetBufferPointer(), fbb.GetSize());
+
+    serialized = true;
+  }
+
+  // Deserialize the wrapper, re-opening it to writing
+  void FlatbuffersWrapper::deserialize() {
+    if (!serialized) {
+      throw std::domain_error("[FlatbuffersWrapper::deserialized]: attempt to deserialize a deserialized buffer.");
+    };
+    const EncryptedMessage *encrypted = buildEncryptedMessage();
+    serialized = false;
+    write(encrypted->body()->data(),  encrypted->header()->size());
   }
 
   // Loads the content from the stored flatbuffers
-  const EncryptedMessage *FlatbuffersWrapper::loadFlatbuffers() {
-    auto encryptedMessage = GetEncryptedMessage(body());
-    if (encryptedMessage->data()) {
-      content_size = encryptedMessage->header()->encrypted_size();
-      memcpy(content_buffer, encryptedMessage->data()->data(), content_size);
+  const EncryptedMessage *FlatbuffersWrapper::buildEncryptedMessage() {
+    if (!serialized) {
+      spdlog::warn("[FlatbuffersWrapper::buildEncryptedMessage]: Forced serialize.");
+      serialize();
     }
-    return encryptedMessage;
+    return GetEncryptedMessage(body());
   }
 
   // Writes the content into a raw message
-  void FlatbuffersWrapper::toRawMessage(NetworkMessage& output) {
-    output.reset();
-    output.write(content_buffer, content_size, MESSAGE_OPERATION_PEEK);
+  NetworkMessage FlatbuffersWrapper::buildRawMessage() {
+    NetworkMessage output;
+    if (serialized) {
+      spdlog::warn("[FlatbuffersWrapper::buildEncryptedMessage]: Forced deserialize.");
+      deserialize();
+    }
+    output.write(body(), wrapper_size, MESSAGE_OPERATION_PEEK);
+    return output;
   }
 
   void FlatbuffersWrapper::decryptXTEA(XTEA xtea) {
-    xtea.decrypt(content_size, content_buffer);
+    if (serialized) return;
+    xtea.decrypt(wrapper_size, body());
   }
 
   void FlatbuffersWrapper::encryptXTEA(XTEA xtea) {
+    if (serialized) return;
     prepareXTEAEncryption();
-    xtea.encrypt(content_size, content_buffer);
-    encrypted_size = content_size;
+    xtea.encrypt(wrapper_size, body());
   }
 
-  // Ensure content has multiple of 8 size (xtea needs it)
+  // Ensure body has multiple of 8 size (xtea needs it)
   uint16_t FlatbuffersWrapper::prepareXTEAEncryption() {
-    uint8_t padding = (8 - content_size % 8);
+    uint8_t padding = (8 - wrapper_size % 8);
     // Validate xtea size and write padding
     if (padding < 8) {
       uint8_t byte = 0x33;
-      memcpy(content_buffer + content_size, &byte, padding);
-      content_size += padding;
+      write(&byte, padding, true);
     }
-
-    return content_size;
+    return wrapper_size;
   }
 
   // Writes in the wrapper buffer body
-  bool FlatbuffersWrapper::write(const void *bytes, uint16_t size) {
-    if (!canWrite(size)) {
+  bool FlatbuffersWrapper::write(const void *bytes, uint16_t size, bool append) {
+    uint16_t offset = !append ? 0 : wrapper_size;
+    if (!canWrite(size + offset)) {
       return false;
     }
-    
-    memcpy(w_buffer + WRAPPER_HEADER_SIZE, bytes, size);
-    writeSize(size);
+
+    memcpy(body() + offset, bytes, size);
+    writeSize(size + offset);
     return true;
   }
 
   // Writes the size the wrapper buffer header
   void FlatbuffersWrapper::writeSize(uint16_t size) {
+    if (serialized) return;
+
     wrapper_size = size;
     memcpy(w_buffer, &wrapper_size, WRAPPER_HEADER_SIZE);
   }
