@@ -84,8 +84,7 @@ namespace CanaryLib {
       bool serialized = false;
 
       bool canWrite(const uint32_t size) const {
-        if (serialized && wrapper_size > 0) return false;
-        return size < WRAPPER_MAX_BODY_SIZE;
+        return !serialized && size < WRAPPER_MAX_BODY_SIZE;
       };
   };
 }
