@@ -176,30 +176,22 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper.write(msg.getDataBuffer(), msg.getLength());
     wrapper.encryptXTEA(xtea);
 
-    // validation
-    uint32_t checksum = wrapper.checksum();
-    uint32_t size = wrapper.size();
-
     wrapper.serialize();
 
     // Validade header
     auto enc_msg = wrapper.buildEncryptedMessage();
-    CHECK_EQ(enc_msg->header()->checksum(), checksum);
-    CHECK_EQ(enc_msg->header()->size(), size);
+    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(enc_msg->body()->data(), enc_msg->header()->size());
+    CHECK_EQ(enc_msg->header()->checksum(), recvChecksum);
+    CHECK_EQ(enc_msg->header()->size(), enc_msg->body()->size());
 
     // Receive message from flatbuffers wrapper
     CanaryLib::FlatbuffersWrapper outWrapper;
     outWrapper.copy(wrapper.buffer(), true);
-    outWrapper.deserialize();
-    CanaryLib::NetworkMessage output = outWrapper.buildRawMessage();
-
-    // Validate checksum before decrypt
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
-    CHECK_EQ(recvChecksum, enc_msg->header()->checksum());
 
     // Decrypt
+    outWrapper.deserialize();
     outWrapper.decryptXTEA(xtea);
-    output = outWrapper.buildRawMessage();
+    CanaryLib::NetworkMessage output = outWrapper.buildRawMessage();
 
     // Validade decrypted message values
     CHECK_EQ(output.read<uint32_t>(), id);
@@ -219,26 +211,19 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper.write(buffer, size);
     wrapper.encryptXTEA(xtea);
 
-    // validation
-    uint32_t checksum = wrapper.checksum();
-    size = wrapper.size();
-
     wrapper.serialize();
 
     // Validade header
     auto enc_msg = CanaryLib::GetEncryptedMessage(wrapper.body());
-    CHECK_EQ(enc_msg->header()->checksum(), checksum);
-    CHECK_EQ(enc_msg->header()->size(), size);
+    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(enc_msg->body()->data(), enc_msg->header()->size());
+    CHECK_EQ(enc_msg->header()->checksum(), recvChecksum);
+    CHECK_EQ(enc_msg->header()->size(), enc_msg->body()->size());
 
     // Receive message from flatbuffers wrapper
     CanaryLib::FlatbuffersWrapper outWrapper;
     outWrapper.copy(wrapper.buffer(), true);
     outWrapper.deserialize();
     CanaryLib::NetworkMessage output = outWrapper.buildRawMessage();
-
-    // Validate checksum before decrypt
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(outWrapper.body(), outWrapper.size());
-    CHECK_EQ(recvChecksum, enc_msg->header()->checksum());
 
     // Decrypt
     outWrapper.decryptXTEA(xtea);
