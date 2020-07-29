@@ -12,18 +12,17 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK(wrapper2.isSerialized());
   }
 
-  TEST_CASE("SetSize") {
+  TEST_CASE("loadBufferSize") {
+    uint8_t buffer[128];
     uint16_t size = 64000;
     uint16_t newSize = 3241;
     CanaryLib::FlatbuffersWrapper wrapper1;
-    wrapper1.setSize(size);
+
+    memcpy(buffer, &size, 2);
+    wrapper1.loadBufferSize(buffer);
     CHECK_EQ(wrapper1.size(), size);
-    wrapper1.serialize();
-    size = wrapper1.size();
-    wrapper1.setSize(newSize);
-    CHECK_EQ(wrapper1.size(), size);
-    wrapper1.deserialize();
-    wrapper1.setSize(newSize);
+    memcpy(buffer, &newSize, 2);
+    wrapper1.loadBufferSize(buffer);
     CHECK_EQ(wrapper1.size(), newSize);
   }
 
