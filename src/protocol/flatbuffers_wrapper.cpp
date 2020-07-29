@@ -34,7 +34,7 @@ namespace CanaryLib {
 
     flatbuffers::FlatBufferBuilder fbb;
     auto encrypted_bytes = fbb.CreateVector(body(), wrapper_size);
-    auto header = CreateHeader(fbb, checksum(), wrapper_size);
+    auto header = CreateHeader(fbb, checksum(), wrapper_size, message_size);
     auto encrypted_message = CreateEncryptedMessage(fbb, header, encrypted_bytes);
 
     fbb.Finish(encrypted_message);
@@ -49,8 +49,10 @@ namespace CanaryLib {
       throw std::domain_error("[FlatbuffersWrapper::deserialized]: attempt to deserialize a deserialized buffer.");
     };
     const EncryptedMessage *encrypted = buildEncryptedMessage();
+    uint16_t temp_size = encrypted->header()->message_size();
+    write(encrypted->body()->data(),  encrypted->header()->encrypted_size());
+    message_size = temp_size;
     serialized = false;
-    write(encrypted->body()->data(),  encrypted->header()->size());
   }
 
   // Loads the content from the stored flatbuffers
@@ -69,13 +71,14 @@ namespace CanaryLib {
       spdlog::warn("[FlatbuffersWrapper::buildEncryptedMessage]: Forced deserialize.");
       deserialize();
     }
-    output.write(body(), wrapper_size, MESSAGE_OPERATION_PEEK);
+    output.write(body(), message_size, MESSAGE_OPERATION_PEEK);
     return output;
   }
 
   void FlatbuffersWrapper::decryptXTEA(XTEA xtea) {
     if (serialized) return;
     xtea.decrypt(wrapper_size, body());
+    wrapper_size = message_size;
   }
 
   void FlatbuffersWrapper::encryptXTEA(XTEA xtea) {
@@ -89,8 +92,9 @@ namespace CanaryLib {
     uint8_t padding = (8 - wrapper_size % 8);
     // Validate xtea size and write padding
     if (padding < 8) {
-      uint8_t byte = 0x33;
+      uint8_t byte = 0x00;
       write(&byte, padding, true);
+      message_size -= padding;
     }
     return wrapper_size;
   }
@@ -119,6 +123,7 @@ namespace CanaryLib {
   // Writes the size the wrapper buffer header
   void FlatbuffersWrapper::writeSize(uint16_t size) {
     wrapper_size = size;
+    message_size = wrapper_size;
     memcpy(w_buffer, &wrapper_size, WRAPPER_HEADER_SIZE);
   }
 }

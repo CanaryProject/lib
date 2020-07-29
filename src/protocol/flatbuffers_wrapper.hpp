@@ -55,6 +55,19 @@ namespace CanaryLib {
         return wrapper_size;
       }
 
+      uint16_t msgSize() {
+        return message_size;
+      }
+
+      uint16_t outputSize() {
+        return wrapper_size + WRAPPER_HEADER_SIZE;
+      }
+
+      void reset() {
+        message_size = 0;
+        wrapper_size = 0;
+      }
+
       // Flatbuffers manipulators
       void serialize();
       void deserialize();
@@ -72,8 +85,14 @@ namespace CanaryLib {
       void encryptXTEA(XTEA xtea);
       uint16_t prepareXTEAEncryption();
 
+      bool readChecksum() {
+        auto enc_msg = buildEncryptedMessage();
+        return enc_msg->header()->checksum() == NetworkMessage::getChecksum(enc_msg->body()->data(), enc_msg->header()->encrypted_size());
+      }
+
     private:
       uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
+      uint16_t message_size = 0;
       uint16_t wrapper_size = 0;
       bool serialized = false;
 

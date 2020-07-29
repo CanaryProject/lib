@@ -125,7 +125,7 @@ TEST_SUITE("NetworkMessage") {
     
     uint8_t *buf = fbb.GetBufferPointer();
 
-    auto header = CanaryLib::CreateHeader(fbb, size, size);
+    auto header = CanaryLib::CreateHeader(fbb, size, size, size);
     auto encrypted_bytes = fbb.CreateVector(buf, size);
 
     auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, encrypted_bytes);
@@ -133,7 +133,8 @@ TEST_SUITE("NetworkMessage") {
 
     auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
     CHECK_EQ(final->header()->checksum(), size);
-    CHECK_EQ(final->header()->size(), size);
+    CHECK_EQ(final->header()->encrypted_size(), size);
+    CHECK_EQ(final->header()->message_size(), size);
 
     const uint8_t* final_data = final->body()->data();
     auto final_msg = CanaryLib::GetMessage(final_data);

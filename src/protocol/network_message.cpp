@@ -64,7 +64,7 @@ namespace CanaryLib {
   }
 
   void NetworkMessage::writePaddingBytes(const size_t n) {
-    uint8_t byte = 0x33;
+    uint8_t byte = 0x00;
     write(&byte, n);
   }
 
