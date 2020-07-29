@@ -104,7 +104,7 @@ namespace CanaryLib {
   // Writes in the wrapper buffer body
   bool FlatbuffersWrapper::write(const void *bytes, uint16_t size, bool append) {
     uint16_t offset = !append ? 0 : wrapper_size;
-    if (!canWrite(size + offset)) {
+    if (append && !canWrite(size)) {
       return false;
     }
 
