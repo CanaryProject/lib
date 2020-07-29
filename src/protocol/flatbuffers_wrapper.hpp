@@ -55,13 +55,6 @@ namespace CanaryLib {
         return wrapper_size;
       }
 
-      void setSize(uint16_t size) {
-        if (serialized) return;
-
-        wrapper_size = 0;
-        writeSize(size);
-      }
-
       // Flatbuffers manipulators
       void serialize();
       void deserialize();
@@ -71,6 +64,7 @@ namespace CanaryLib {
       // Wrapper buffer manipulators
       void copy(const uint8_t *bytes, bool isSerialized = true);
       bool write(const void *bytes, uint16_t size, bool append = false);
+      uint16_t readSize(const uint8_t *buffer);
       void writeSize(uint16_t size);
 
       // Content manipulators

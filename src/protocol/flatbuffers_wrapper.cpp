@@ -22,13 +22,7 @@
 namespace CanaryLib {
   // Copies another wrapper buffer
   void FlatbuffersWrapper::copy(const uint8_t *bytes, bool isSerialized) {
-    serialized = false;
-
-    // read size
-    uint16_t size;
-    memcpy(&size, bytes, WRAPPER_HEADER_SIZE);
-    write(bytes + WRAPPER_HEADER_SIZE, size);
-
+    write(bytes + WRAPPER_HEADER_SIZE, loadBufferSize(bytes));
     serialized = isSerialized;
   }
 
@@ -113,10 +107,17 @@ namespace CanaryLib {
     return true;
   }
 
+  // Read the size of a buffer
+  uint16_t FlatbuffersWrapper::loadBufferSize(const uint8_t *buffer) {
+    // read size
+    uint16_t size;
+    memcpy(&size, buffer, WRAPPER_HEADER_SIZE);
+    writeSize(size);
+    return size;
+  }
+
   // Writes the size the wrapper buffer header
   void FlatbuffersWrapper::writeSize(uint16_t size) {
-    if (serialized) return;
-
     wrapper_size = size;
     memcpy(w_buffer, &wrapper_size, WRAPPER_HEADER_SIZE);
   }
