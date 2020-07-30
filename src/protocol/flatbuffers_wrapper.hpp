@@ -66,6 +66,7 @@ namespace CanaryLib {
       void reset() {
         message_size = 0;
         wrapper_size = 0;
+        serialized = false;
       }
 
       // Flatbuffers manipulators
