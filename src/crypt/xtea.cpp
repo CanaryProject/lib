@@ -353,4 +353,15 @@ namespace CanaryLib {
       readPos += 8;
     }
   }
+
+  const uint32_t* XTEA::generateKey() {
+    std::mt19937 eng(std::time(nullptr));
+    std::uniform_int_distribution<uint32_t> unif(0, 0xFFFFFFFF);
+    key[0] = unif(eng);
+    key[1] = unif(eng);
+    key[2] = unif(eng);
+    key[3] = unif(eng);
+
+    return key;
+  }
 }

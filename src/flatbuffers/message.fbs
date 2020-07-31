@@ -9,6 +9,6 @@ union Data {
 } // Optionally add more tables.
 
 table Message {
-  data:Data;
+  message_data:[Data];
 }
 root_type Message;

@@ -12,7 +12,7 @@ void validateMessage(T value) {
   CHECK(msg.read<T>() == value);
 }
 
-TEST_SUITE("NetworkMessage Test") {
+TEST_SUITE("NetworkMessage") {
   TEST_CASE("NetworkMessage write/read uint8_t") {
     uint8_t value = '[';
     validateMessage<uint8_t>(value);
@@ -49,7 +49,7 @@ TEST_SUITE("NetworkMessage Test") {
     msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.readString(), name);
     CHECK_EQ(output.read<uint32_t>(), id);
   }
@@ -61,15 +61,11 @@ TEST_SUITE("NetworkMessage Test") {
     msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
     output.reset();
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_BUFFER);
-    CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + sizeof(uint32_t));
-    CHECK_EQ(output.getLength(), 0);
-    output.reset();
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_INCREMENT_BUFFER_AND_SIZE);
+    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_STANDARD);
     CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + sizeof(uint32_t));
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
   }
@@ -81,7 +77,7 @@ TEST_SUITE("NetworkMessage Test") {
       msg.writePaddingBytes(i);
       CHECK_EQ(msg.getLength(), i);
     }
-    CHECK_EQ(msg.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
+    CHECK_EQ(msg.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE + n);
   }
   TEST_CASE("NetworkMessage skip") {
     CanaryLib::NetworkMessage msg;
@@ -110,10 +106,16 @@ TEST_SUITE("NetworkMessage Test") {
     flatbuffers::FlatBufferBuilder fbb;
     auto name = fbb.CreateString(nameStr);
     auto player = CanaryLib::CreatePlayerData(fbb, id, name);
-    fbb.Finish(player);
 
-    uint8_t *buf = fbb.GetBufferPointer();
-    auto message = CanaryLib::CreateMessage(fbb, CanaryLib::Data_PlayerData, player.Union());
+    // union types.
+    std::vector<uint8_t> types;
+    types.push_back(static_cast<uint8_t>(CanaryLib::Data_PlayerData));
+
+    // union values.
+    std::vector<flatbuffers::Offset<void>> data;
+    data.push_back(player.Union());
+
+    auto message = CanaryLib::CreateMessage(fbb, fbb.CreateVector(types), fbb.CreateVector(data));
     fbb.ForceVectorAlignment(fbb.GetSize(), sizeof(uint8_t), 8);
 
     fbb.Finish(message);
@@ -121,7 +123,7 @@ TEST_SUITE("NetworkMessage Test") {
 
     CHECK_EQ(size % 8, 0);
     
-    buf = fbb.GetBufferPointer();
+    uint8_t *buf = fbb.GetBufferPointer();
 
     auto header = CanaryLib::CreateHeader(fbb, size, size, size);
     auto encrypted_bytes = fbb.CreateVector(buf, size);
@@ -132,80 +134,18 @@ TEST_SUITE("NetworkMessage Test") {
     auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
     CHECK_EQ(final->header()->checksum(), size);
     CHECK_EQ(final->header()->encrypted_size(), size);
-    CHECK_EQ(final->header()->size(), size);
+    CHECK_EQ(final->header()->message_size(), size);
 
-    const uint8_t* final_data = final->data()->data();
+    const uint8_t* final_data = final->body()->data();
     auto final_msg = CanaryLib::GetMessage(final_data);
-    CHECK(!!final_msg->data());
-    CHECK_EQ(final_msg->data_type(), CanaryLib::Data_PlayerData);
-    CHECK_EQ(final_msg->data_as_PlayerData()->name()->c_str(), nameStr);
-    CHECK_EQ(final_msg->data_as_PlayerData()->id(), id);
-  }
-  TEST_CASE("Write>Encode>Decode>Read messages with flatbuffers") {
-    struct Position {
-      uint16_t x = 0;
-    };
+    CHECK(!!final_msg->message_data());
+    CHECK_EQ(final_msg->message_data_type()->size(), 1);
+    CHECK_EQ(final_msg->message_data_type()->GetEnum<CanaryLib::Data>(0), CanaryLib::Data_PlayerData);
 
-    // Const variables for testing purpose
-    std::string name = "Mr. Someone";
-    uint32_t id = 3294967295;
-    Position pos{63201};
+    auto d = final_msg->message_data();
 
-    // Create the default message that will be our buffer
-    CanaryLib::NetworkMessage msg;
-    msg.write<uint32_t>(id);
-    msg.writeString(name);
-    msg.write<Position>(pos);
-
-    // Validate xtea size and write padding
-    uint16_t msg_size = msg.getLength();
-    if ((msg_size % 8) != 0) {
-      msg.writePaddingBytes(8 - (msg_size % 8));
-    }
-    msg_size = msg.getLength();
-    msg.setBufferPosition(CanaryLib::MAX_HEADER_SIZE);
-    
-    // Encrypt input
-    CanaryLib::XTEA().encrypt(msg_size, msg.getOutputBuffer());
-
-    // Get checksum
-    uint32_t recvChecksum = CanaryLib::NetworkMessage::getChecksum(msg.getOutputBuffer(), msg.getLength());
-
-    // Start flabuffer creation
-    flatbuffers::FlatBufferBuilder fbb;
-    auto header = CanaryLib::CreateHeader(fbb, recvChecksum, msg_size, msg_size);
-    // create flatbuffer vector with the outputbuffer
-    auto encrypted_bytes = fbb.CreateVector(msg.getOutputBuffer(), msg_size);
-
-    auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, encrypted_bytes);
-    fbb.Finish(encrypted_message);
-
-    auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
-    auto encrypted_size = final->header()->encrypted_size();
-
-    // Validade header
-    CHECK_EQ(final->header()->checksum(), recvChecksum);
-    CHECK_EQ(final->header()->size(), msg_size);
-    CHECK_EQ(encrypted_size, msg_size);
-
-    // Validate Size
-    CHECK_EQ(final->data()->size(), msg_size);
-
-    // Read message from flatbuffer
-    CanaryLib::NetworkMessage output;
-    output.write(final->data()->data(), msg_size, CanaryLib::MESSAGE_INCREMENT_SIZE);
-
-    // Validade buffer position (must be initial pos)
-    CHECK_EQ(output.getBufferPosition(), CanaryLib::MAX_HEADER_SIZE);
-
-    // Validate checksum
-    uint32_t checksum = CanaryLib::NetworkMessage::getChecksum(output.getOutputBuffer(), output.getLength());
-    CHECK_EQ(checksum, recvChecksum);
-
-    // Validade decrypted message values
-    CanaryLib::XTEA().decrypt(msg_size, output.getOutputBuffer());
-    CHECK_EQ(output.read<uint32_t>(), id);
-    CHECK_EQ(output.readString(), name);
-    CHECK_EQ(output.read<Position>().x, pos.x);
+    CHECK_EQ(d->size(), 1);
+    CHECK_EQ(d->GetAs<CanaryLib::PlayerData>(0)->name()->str(), nameStr);
+    CHECK_EQ(d->GetAs<CanaryLib::PlayerData>(0)->id(), id);
   }
 }

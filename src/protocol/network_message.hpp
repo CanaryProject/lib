@@ -25,10 +25,9 @@
 #include "general.hpp"
 
 namespace CanaryLib {
-	enum MessageIncrementType {
-    MESSAGE_INCREMENT_BUFFER_AND_SIZE,
-    MESSAGE_INCREMENT_BUFFER,
-    MESSAGE_INCREMENT_SIZE
+	enum MessageOperationType {
+    MESSAGE_OPERATION_STANDARD,
+    MESSAGE_OPERATION_PEEK
 	};
 
   struct NetworkMessageInfo {
@@ -95,8 +94,8 @@ namespace CanaryLib {
          *  Message Read manipulators
          **/
       template<typename T>
-      T read(size_t size = 0) {
-        if (size == 0) size = sizeof(T);
+      T read(const MessageOperationType opType = MESSAGE_OPERATION_STANDARD) {
+        size_t size = sizeof(T);
 
         if(!canRead(size)) {
           return T();
@@ -104,34 +103,35 @@ namespace CanaryLib {
 
         T value;
         memcpy(&value, m_buffer + m_info.m_bufferPos, size);
-        m_info.m_bufferPos += size;
+        
+        if (opType != MESSAGE_OPERATION_PEEK) m_info.m_bufferPos += size;
 
         return value;
       }
 
       // temporary, try migrate to write
-      uint8_t readByte();
+      uint8_t readByte(const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       // temporary, try to migrate to write
-      std::string readString(uint16_t stringLen = 0);
+      std::string readString(uint16_t stringLen = 0, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
       
         /**
          *  Message Write manipulators
          **/
-      void write(const void* bytes, const size_t size, const MessageIncrementType increment = MESSAGE_INCREMENT_BUFFER_AND_SIZE);
+      void write(const void* bytes, const size_t size, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       template<typename T>
-      void write(const T value) {
-        write(&value, sizeof(T));
+      void write(const T value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD) {
+        write(&value, sizeof(T), opType);
       }
 
       // temporary, migrate to write
-      void writeByte(uint8_t value);
+      void writeByte(uint8_t value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
 
       void writePaddingBytes(const size_t n);
 
       // temporary, try to migrate to write
-      void writeString(const std::string& value);
+      void writeString(const std::string& value, const MessageOperationType opType = MESSAGE_OPERATION_STANDARD);
       
       void reset() {
          m_info = {}; 
@@ -150,25 +150,47 @@ namespace CanaryLib {
          *  Message Manipulators tools
          **/
       // XTEA
-      bool decryptXTEA(ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
-      void encryptXTEA();
+      bool decryptXTEA(XTEA xtea, ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
+      void encryptXTEA(XTEA xtea);
 
       uint8_t* getOutputBuffer() {
-        return m_buffer + outputBufferStart;
+        return m_buffer + m_info.m_headerPos;
       }
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
+
+      void writeMessageLength() {
+        add_header(m_info.m_messageSize);
+      }
+
+      void writeChecksum() {
+        add_header(getChecksum(getOutputBuffer(), getLength()));
+      }
+
+      bool readChecksum() {
+        uint32_t checksum = 0;
+        uint32_t recvChecksum = read<uint32_t>();
+        uint32_t len = m_info.m_messageSize - (HEADER_LENGTH + CHECKSUM_LENGTH);
+        
+        if (len > 0) {
+          checksum = getChecksum(m_buffer + m_info.m_bufferPos, len);
+        }
+
+        return recvChecksum == checksum;
+      }
+
+      uint8_t* getCurrentBuffer() { return m_buffer + m_info.m_bufferPos; }
+      uint8_t* getDataBuffer() { return m_buffer + CanaryLib::MAX_HEADER_SIZE; }
       
     protected:
       NetworkMessageInfo m_info;
 		  uint8_t m_buffer[NETWORKMESSAGE_MAXSIZE];
-		  MsgSize_t outputBufferStart = MAX_HEADER_SIZE;
 
       template <typename T>
       void add_header(T add) {
-        assert(outputBufferStart >= sizeof(T));
-        outputBufferStart -= sizeof(T);
-        memcpy(m_buffer + outputBufferStart, &add, sizeof(T));
+        assert(m_info.m_headerPos >= sizeof(T));
+        m_info.m_headerPos -= sizeof(T);
+        memcpy(getOutputBuffer(), &add, sizeof(T));
         //added header size to the message size
         m_info.m_messageSize += sizeof(T);
       }

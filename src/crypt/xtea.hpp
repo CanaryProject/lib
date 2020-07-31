@@ -22,6 +22,8 @@
 #define CANARY_LIB_CRYPT_XTEA_H
 
 #include <iostream>
+#include <random>
+
 #include "../pch.hpp"
 
 namespace CanaryLib {
@@ -29,26 +31,27 @@ namespace CanaryLib {
   class XTEA {
     public:
       XTEA() {}
-
-      XTEA(const XTEA&) = delete;
-      XTEA& operator=(const XTEA&) = delete;
-
-      static XTEA& getInstance() {
-        static XTEA instance; // Guaranteed to be destroyed.
-                              // Instantiated on first use.
-        return instance;
+      XTEA(const uint32_t* key) {
+        setKey(key);
       }
 
-      void decrypt(uint16_t length, uint8_t* buffer) const;
-      void encrypt(uint16_t length, uint8_t* buffer) const;
+      // Can't copy, your xtea is unique
+      XTEA& operator=(const XTEA&) = delete;
+
+      const uint32_t* getKey() {
+        return key;
+      }
       void setKey(const uint32_t* k) {
 			  memcpy(key, k, sizeof(*k) * 4);
       };
 
+      void decrypt(uint16_t length, uint8_t* buffer) const;
+      void encrypt(uint16_t length, uint8_t* buffer) const;
+      const uint32_t* generateKey();
+
     private:
 		  uint32_t key[4] = {};
   };  
-  constexpr auto XTEA = &XTEA::getInstance;
 }
 
 #endif

@@ -65,48 +65,35 @@ bool VerifyDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DATA_TYPE = 4,
-    VT_DATA = 6
+    VT_MESSAGE_DATA_TYPE = 4,
+    VT_MESSAGE_DATA = 6
   };
-  CanaryLib::Data data_type() const {
-    return static_cast<CanaryLib::Data>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  const flatbuffers::Vector<uint8_t> *message_data_type() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_MESSAGE_DATA_TYPE);
   }
-  const void *data() const {
-    return GetPointer<const void *>(VT_DATA);
-  }
-  template<typename T> const T *data_as() const;
-  const CanaryLib::PlayerData *data_as_PlayerData() const {
-    return data_type() == CanaryLib::Data_PlayerData ? static_cast<const CanaryLib::PlayerData *>(data()) : nullptr;
-  }
-  const CanaryLib::WeaponData *data_as_WeaponData() const {
-    return data_type() == CanaryLib::Data_WeaponData ? static_cast<const CanaryLib::WeaponData *>(data()) : nullptr;
+  const flatbuffers::Vector<flatbuffers::Offset<void>> *message_data() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<void>> *>(VT_MESSAGE_DATA);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
-           VerifyOffset(verifier, VT_DATA) &&
-           VerifyData(verifier, data(), data_type()) &&
+           VerifyOffset(verifier, VT_MESSAGE_DATA_TYPE) &&
+           verifier.VerifyVector(message_data_type()) &&
+           VerifyOffset(verifier, VT_MESSAGE_DATA) &&
+           verifier.VerifyVector(message_data()) &&
+           VerifyDataVector(verifier, message_data(), message_data_type()) &&
            verifier.EndTable();
   }
 };
-
-template<> inline const CanaryLib::PlayerData *Message::data_as<CanaryLib::PlayerData>() const {
-  return data_as_PlayerData();
-}
-
-template<> inline const CanaryLib::WeaponData *Message::data_as<CanaryLib::WeaponData>() const {
-  return data_as_WeaponData();
-}
 
 struct MessageBuilder {
   typedef Message Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_data_type(CanaryLib::Data data_type) {
-    fbb_.AddElement<uint8_t>(Message::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  void add_message_data_type(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> message_data_type) {
+    fbb_.AddOffset(Message::VT_MESSAGE_DATA_TYPE, message_data_type);
   }
-  void add_data(flatbuffers::Offset<void> data) {
-    fbb_.AddOffset(Message::VT_DATA, data);
+  void add_message_data(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> message_data) {
+    fbb_.AddOffset(Message::VT_MESSAGE_DATA, message_data);
   }
   explicit MessageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -121,12 +108,24 @@ struct MessageBuilder {
 
 inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
-    CanaryLib::Data data_type = CanaryLib::Data_NONE,
-    flatbuffers::Offset<void> data = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> message_data_type = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> message_data = 0) {
   MessageBuilder builder_(_fbb);
-  builder_.add_data(data);
-  builder_.add_data_type(data_type);
+  builder_.add_message_data(message_data);
+  builder_.add_message_data_type(message_data_type);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Message> CreateMessageDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *message_data_type = nullptr,
+    const std::vector<flatbuffers::Offset<void>> *message_data = nullptr) {
+  auto message_data_type__ = message_data_type ? _fbb.CreateVector<uint8_t>(*message_data_type) : 0;
+  auto message_data__ = message_data ? _fbb.CreateVector<flatbuffers::Offset<void>>(*message_data) : 0;
+  return CanaryLib::CreateMessage(
+      _fbb,
+      message_data_type__,
+      message_data__);
 }
 
 inline bool VerifyData(flatbuffers::Verifier &verifier, const void *obj, Data type) {

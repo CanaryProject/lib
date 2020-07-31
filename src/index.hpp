@@ -25,6 +25,7 @@
 #include "global/index.hpp"
 #include "items/index.hpp"
 #include "protocol/index.hpp"
+#include "utils/index.hpp"
 
 #include "pch.hpp"
 
