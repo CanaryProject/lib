@@ -17,13 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef CANARY_LIB_PROTOCOL_FLATBUFFERS_WRAPPER_H
+#define CANARY_LIB_PROTOCOL_FLATBUFFERS_WRAPPER_H
+
 #include "messages/index.hpp"
-#include "network_message.hpp"
+#include "general.hpp"
 
 #include "../crypt/xtea.hpp"
 #include "../pch.hpp"
 
 namespace CanaryLib {
+  class NetworkMessage;
+  
   static constexpr int32_t WRAPPER_HEADER_SIZE = 2;
   static constexpr int32_t WRAPPER_MAX_BODY_SIZE = NETWORKMESSAGE_MAXSIZE - WRAPPER_HEADER_SIZE;
 
@@ -44,7 +49,7 @@ namespace CanaryLib {
       }
 
       const uint32_t checksum() {
-        return NetworkMessage::getChecksum(body(), wrapper_size);
+        return getChecksum(body(), wrapper_size);
       }
 
       bool isSerialized() {
@@ -88,8 +93,10 @@ namespace CanaryLib {
 
       bool readChecksum() {
         auto enc_msg = buildEncryptedMessage();
-        return enc_msg->header()->checksum() == NetworkMessage::getChecksum(enc_msg->body()->data(), enc_msg->header()->encrypted_size());
+        return enc_msg->header()->checksum() == getChecksum(enc_msg->body()->data(), enc_msg->header()->encrypted_size());
       }
+
+      static uint32_t getChecksum(const uint8_t* data, size_t length);
 
     private:
       uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
@@ -103,12 +110,4 @@ namespace CanaryLib {
   };
 }
 
-/**
- * Wrapper created -> no buffer, size 0
- * Ammend raw data (networkmessage)
- *  wrapper.buffer = databuffer, size += msg_size
- * Ammend flatbuffer data
- * 
- * 
- *   
- **/
+#endif

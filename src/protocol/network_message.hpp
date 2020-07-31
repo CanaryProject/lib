@@ -22,9 +22,12 @@
 
 #include "../pch.hpp"
 #include "../crypt/xtea.hpp"
+
 #include "general.hpp"
 
 namespace CanaryLib {
+  class FlatbuffersWrapper;
+
 	enum MessageOperationType {
     MESSAGE_OPERATION_STANDARD,
     MESSAGE_OPERATION_PEEK
@@ -129,16 +132,13 @@ namespace CanaryLib {
       bool decryptXTEA(XTEA xtea, ChecksumMethods_t checksumMethod = CHECKSUM_METHOD_NONE);
       void encryptXTEA(XTEA xtea);
 
-      uint8_t* getOutputBuffer() {
-        return getDataBuffer();
-      }
-
-      static uint32_t getChecksum(const uint8_t* data, size_t length);
-
-      uint8_t* getDataBuffer() { return m_buffer; }
-
       MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
       bool eof() { return m_info.m_bufferPos >= m_info.m_messageSize; }
+
+      FlatbuffersWrapper* writeToFlatbuffersWrapper(FlatbuffersWrapper* wrapper, bool append = false) {
+        wrapper->write(m_buffer, m_info.m_messageSize, append);
+        return wrapper;
+      }
       
     protected:
       NetworkMessageInfo m_info;

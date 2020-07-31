@@ -79,7 +79,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     CanaryLib::NetworkMessage output = wrapper.buildRawMessage();
 
     CHECK_EQ(output.getLength(), randomMsg.size());
-    CHECK_EQ(std::string((char *) output.getDataBuffer()).c_str(), randomMsg);
+    CHECK_EQ(std::string((char *) output.getBuffer()).c_str(), randomMsg);
   }
 
   TEST_CASE("Encrypt/Decrypt XTEA") {
@@ -172,7 +172,7 @@ TEST_SUITE("FlatbuffersWrapper") {
 
     // wrapping
     CanaryLib::FlatbuffersWrapper wrapper;
-    wrapper.write(msg.getDataBuffer(), msg.getLength());
+    wrapper.write(msg.getBuffer(), msg.getLength());
     wrapper.encryptXTEA(xtea);
 
     uint16_t msgSize = wrapper.msgSize();

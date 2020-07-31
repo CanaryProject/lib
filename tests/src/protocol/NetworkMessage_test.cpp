@@ -47,7 +47,7 @@ TEST_SUITE("NetworkMessage") {
     msg.setBufferPosition(0);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
+    output.write(msg.getBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.readString(), name);
     CHECK_EQ(output.read<uint32_t>(), id);
   }
@@ -59,11 +59,11 @@ TEST_SUITE("NetworkMessage") {
     msg.setBufferPosition(0);
     
     CanaryLib::NetworkMessage output;
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
+    output.write(msg.getBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
     CHECK_EQ(output.getBufferPosition(), 0);
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
     output.reset();
-    output.write(msg.getOutputBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_STANDARD);
+    output.write(msg.getBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_STANDARD);
     CHECK_EQ(output.getBufferPosition(), sizeof(uint32_t));
     CHECK_EQ(output.getLength(), sizeof(uint32_t));
   }
