@@ -135,7 +135,7 @@ namespace CanaryLib {
       MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
       bool eof() { return m_info.m_bufferPos >= m_info.m_messageSize; }
 
-      FlatbuffersWrapper* writeToFlatbuffersWrapper(FlatbuffersWrapper* wrapper, bool append = false) {
+      std::shared_ptr<FlatbuffersWrapper> writeToFlatbuffersWrapper(std::shared_ptr<FlatbuffersWrapper> wrapper, bool append = false) {
         wrapper->write(m_buffer, m_info.m_messageSize, append);
         return wrapper;
       }

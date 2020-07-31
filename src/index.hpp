@@ -29,4 +29,7 @@
 
 #include "pch.hpp"
 
+using Wrapper = CanaryLib::FlatbuffersWrapper;
+using Wrapper_ptr = std::shared_ptr<Wrapper>;
+
 #endif
