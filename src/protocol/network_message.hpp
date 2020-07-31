@@ -136,6 +136,8 @@ namespace CanaryLib {
       static uint32_t getChecksum(const uint8_t* data, size_t length);
 
       uint8_t* getDataBuffer() { return m_buffer; }
+
+      MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
       
     protected:
       NetworkMessageInfo m_info;
