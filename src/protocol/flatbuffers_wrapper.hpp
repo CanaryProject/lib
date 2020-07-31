@@ -93,9 +93,7 @@ namespace CanaryLib {
 
       bool readChecksum() {
         auto enc_msg = buildEncryptedMessage();
-        uint16_t encrypted_size = enc_msg->header()->encrypted_size();
-        uint16_t checksumSize = encrypted_size > 0 ? encrypted_size : enc_msg->header()->message_size();
-        return enc_msg->header()->checksum() == getChecksum(enc_msg->body()->data(), checksumSize);
+        return enc_msg->header()->checksum() == getChecksum(enc_msg->body()->data(), wrapper_size);
       }
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
@@ -103,6 +101,7 @@ namespace CanaryLib {
     private:
       uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
       uint16_t message_size = 0;
+      uint16_t encrypted_size = 0;
       uint16_t wrapper_size = 0;
 
       bool encrypted = false;
