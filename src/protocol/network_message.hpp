@@ -138,6 +138,7 @@ namespace CanaryLib {
       uint8_t* getDataBuffer() { return m_buffer; }
 
       MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
+      bool eof() { return m_info.m_bufferPos >= m_info.m_messageSize; }
       
     protected:
       NetworkMessageInfo m_info;
