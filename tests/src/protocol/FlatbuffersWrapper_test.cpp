@@ -56,7 +56,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK_THROWS_AS(wrapper1.deserialize(), std::domain_error);
   }
 
-  TEST_CASE("buildEncryptedMessage") {
+  TEST_CASE("buildEncryptedMessage without encryption") {
     CanaryLib::FlatbuffersWrapper wrapper1;
     std::string str = std::string("myMsg");
     wrapper1.write(str.c_str(), str.size());
@@ -65,9 +65,26 @@ TEST_SUITE("FlatbuffersWrapper") {
     auto encryptedMsg = wrapper1.buildEncryptedMessage();
 
     CHECK(wrapper1.readChecksum());
-    CHECK_EQ(encryptedMsg->header()->encrypted_size(), str.size());
+    CHECK_EQ(encryptedMsg->header()->encrypted_size(), 0);
     CHECK_EQ(encryptedMsg->header()->message_size(), str.size());
     CHECK_EQ(std::string((char *) encryptedMsg->body()->data()), str);
+  }
+
+  TEST_CASE("buildEncryptedMessage with encryption") {
+    CanaryLib::XTEA xtea;
+    CanaryLib::FlatbuffersWrapper wrapper1;
+    std::string str = std::string("myMsg");
+    wrapper1.write(str.c_str(), str.size());
+
+    uint8_t size = wrapper1.prepareXTEAEncryption();
+    wrapper1.encryptXTEA(xtea);
+    wrapper1.serialize();
+    auto encryptedMsg = wrapper1.buildEncryptedMessage();
+
+    CHECK(wrapper1.readChecksum());
+    CHECK_EQ(encryptedMsg->header()->encrypted_size(), size);
+    CHECK_EQ(encryptedMsg->header()->message_size(), str.size());
+    CHECK_NE(std::string((char *) encryptedMsg->body()->data()), str);
   }
 
   TEST_CASE("buildRawMessage") {
