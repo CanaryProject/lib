@@ -37,7 +37,6 @@ namespace CanaryLib {
   // 2 bytes for encrypted message size
   static constexpr uint8_t CHECKSUM_LENGTH = 4;
   static constexpr uint8_t HEADER_LENGTH = 2;
-  static constexpr uint8_t MAX_HEADER_SIZE = 8;
   static constexpr uint8_t XTEA_MULTIPLE = 8;
 
   static constexpr uint8_t NON_BODY_LENGTH =
