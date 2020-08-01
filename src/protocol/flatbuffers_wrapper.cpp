@@ -49,16 +49,17 @@ namespace CanaryLib {
     if (!serialized) {
       throw std::domain_error("[FlatbuffersWrapper::deserialized]: attempt to deserialize a deserialized buffer.");
     };
-    const EncryptedMessage *encrypted = buildEncryptedMessage();
+    const EncryptedMessage *encryptedMessage = buildEncryptedMessage();
 
-    encrypted_size = encrypted->header()->encrypted_size();
-    uint16_t content_size = encrypted->header()->message_size();
+    encrypted_size = encryptedMessage->header()->encrypted_size();
+    uint16_t content_size = encryptedMessage->header()->message_size();
 
     if (encrypted_size > 0) {
-      write(encrypted->body()->data(), encrypted_size);
+      write(encryptedMessage->body()->data(), encrypted_size);
       message_size = content_size;
+      encrypted = true;
     } else {
-      write(encrypted->body()->data(), content_size);
+      write(encryptedMessage->body()->data(), content_size);
     }
 
     serialized = false;
@@ -85,7 +86,7 @@ namespace CanaryLib {
   }
 
   void FlatbuffersWrapper::decryptXTEA(XTEA xtea) {
-    if (serialized) return;
+    if (serialized || !encrypted) return;
     xtea.decrypt(wrapper_size, body());
     writeSize(message_size);
     encrypted_size = 0;
