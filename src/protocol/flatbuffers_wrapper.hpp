@@ -91,10 +91,7 @@ namespace CanaryLib {
       void encryptXTEA(XTEA xtea);
       uint16_t prepareXTEAEncryption();
 
-      bool readChecksum() {
-        auto enc_msg = buildEncryptedMessage();
-        return enc_msg->header()->checksum() == getChecksum(enc_msg->body()->data(), wrapper_size);
-      }
+      bool readChecksum();
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
 

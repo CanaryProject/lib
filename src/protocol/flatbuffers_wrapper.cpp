@@ -139,6 +139,14 @@ namespace CanaryLib {
     memcpy(w_buffer, &wrapper_size, WRAPPER_HEADER_SIZE);
   }
 
+  bool FlatbuffersWrapper::readChecksum() {
+    auto enc_msg = buildEncryptedMessage();
+    encrypted_size = enc_msg->header()->encrypted_size();
+    uint16_t checksumSize = encrypted_size == 0 ? enc_msg->header()->message_size() :  encrypted_size;
+
+    return enc_msg->header()->checksum() == getChecksum(enc_msg->body()->data(), checksumSize);
+  }
+
   uint32_t FlatbuffersWrapper::getChecksum(const uint8_t* data, size_t length) {
     if (length > NETWORKMESSAGE_MAXSIZE) {
       return 0;
