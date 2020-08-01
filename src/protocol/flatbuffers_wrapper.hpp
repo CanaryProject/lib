@@ -68,6 +68,10 @@ namespace CanaryLib {
         return wrapper_size + WRAPPER_HEADER_SIZE;
       }
 
+      bool isEncrypted() {
+        return encrypted;
+      }
+
       bool isEncryptionEnabled() {
         return encryption_enabled;
       }
