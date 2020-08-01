@@ -68,6 +68,14 @@ namespace CanaryLib {
         return wrapper_size + WRAPPER_HEADER_SIZE;
       }
 
+      bool isEncryptionEnabled() {
+        return encryption_enabled;
+      }
+
+      void disableEncryption() {
+        encryption_enabled = false;
+      }
+
       void reset() {
         message_size = 0;
         wrapper_size = 0;
@@ -101,6 +109,7 @@ namespace CanaryLib {
       uint16_t encrypted_size = 0;
       uint16_t wrapper_size = 0;
 
+      bool encryption_enabled = true;
       bool encrypted = false;
       bool serialized = false;
 

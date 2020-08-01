@@ -93,7 +93,7 @@ namespace CanaryLib {
   }
 
   void FlatbuffersWrapper::encryptXTEA(XTEA xtea) {
-    if (serialized) return;
+    if (serialized || !encryption_enabled) return;
     encrypted_size = prepareXTEAEncryption();
     xtea.encrypt(encrypted_size, body());
     encrypted = true;
