@@ -33,11 +33,12 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK_EQ(wrapper1.Encrypted(), !!_xtea);
 
     auto enc_msg = wrapper1.getEncryptedMessage();
+    uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
 
     if (_xtea)
-      _xtea->decrypt(enc_msg->header()->message_size(), (uint8_t *) enc_msg->body()->Data());
+      _xtea->decrypt(enc_msg->header()->message_size(), body_buffer);
 
-    auto content_msg = CanaryLib::GetContentMessage(enc_msg->body()->Data());
+    auto content_msg = CanaryLib::GetContentMessage(body_buffer);
 
     CHECK_EQ(enc_msg->header()->encrypted(), !!_xtea);
     CHECK_EQ(content_msg->data()->size(), 3);
@@ -71,6 +72,30 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper2.copy(wrapper1.Finish() + CanaryLib::WRAPPER_HEADER_SIZE, wrapper1.Size());
     validateBasic(wrapper2);
     CHECK_EQ(wrapper2.Size(), wrapper1.Size());
+  }
+
+  TEST_CASE("Test with NetworkMessage") {
+    CanaryLib::FlatbuffersWrapper2 wrapper;
+    
+    CanaryLib::NetworkMessage msg;
+    flatbuffers::FlatBufferBuilder &fbb = wrapper.Builder();
+    auto fbuffer = fbb.CreateVector(msg.getBuffer(), msg.getLength());
+    auto raw_data = CanaryLib::CreateRawData(fbb, fbuffer, msg.getLength());
+    fbb.Finish(raw_data);
+    wrapper.add(raw_data.Union(), CanaryLib::DataType_RawData);
+
+    CanaryLib::FlatbuffersWrapper2 inputWrapper;
+    wrapper.Finish();
+    inputWrapper.copy(wrapper.Finish());
+
+    // validate checksum
+    bool checksummed = inputWrapper.readChecksum();
+
+    auto enc_msg = inputWrapper.getEncryptedMessage();
+    auto header = enc_msg->header();
+    uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
+
+    auto content_msg = CanaryLib::GetContentMessage(body_buffer);
   }
 
   TEST_CASE("Reset") {
