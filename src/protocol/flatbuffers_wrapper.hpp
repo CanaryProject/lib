@@ -30,7 +30,7 @@ namespace CanaryLib {
   class NetworkMessage;
   
   static constexpr int32_t WRAPPER_HEADER_SIZE = 2;
-  static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = NETWORKMESSAGE_MAXSIZE / 2;
+  static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = 60000;
   static constexpr int32_t WRAPPER_MAX_BODY_SIZE = NETWORKMESSAGE_MAXSIZE - WRAPPER_HEADER_SIZE;
 
   class FlatbuffersWrapper : public std::enable_shared_from_this<FlatbuffersWrapper> {
