@@ -174,6 +174,7 @@ namespace CanaryLib {
 
       bool add(flatbuffers::Offset<void> data, DataType type);
       void copy(const uint8_t *buffer);
+      void copy(const uint8_t *buffer, uint16_t size);
       uint8_t *Finish(XTEA *xtea = nullptr);
       static uint16_t loadSizeFromBuffer(const uint8_t *buffer);
       bool readChecksum();

@@ -199,7 +199,7 @@ namespace CanaryLib {
   }
 
   uint8_t *FlatbuffersWrapper2::Finish(XTEA *xtea) {
-    if (!w_buffer || !encrypted_message) {
+    if (!encrypted_message) {
       auto types_vec = fbb.CreateVector(types);
       auto contents_vec = fbb.CreateVector(contents);
 
@@ -253,12 +253,17 @@ namespace CanaryLib {
 
   // Copies another raw wrapper buffer
   void FlatbuffersWrapper2::copy(const uint8_t *buffer) {
-    reset();
     uint16_t size = loadSizeFromBuffer(buffer);
+    copy(buffer, size);
+  }
+
+  // Copies another raw wrapper buffer
+  void FlatbuffersWrapper2::copy(const uint8_t *buffer, uint16_t size) {
+    reset();
     memcpy(w_buffer, buffer, size + WRAPPER_HEADER_SIZE);
     fbb.PushFlatBuffer(w_buffer + WRAPPER_HEADER_SIZE, size);
     fbb.PopBytes(2);
-    encrypted_message = GetEncryptedMessage(buffer + WRAPPER_HEADER_SIZE);
+    encrypted_message = GetEncryptedMessage(w_buffer + WRAPPER_HEADER_SIZE);
   }
 
   uint16_t FlatbuffersWrapper2::loadSizeFromBuffer(const uint8_t *buffer) {
