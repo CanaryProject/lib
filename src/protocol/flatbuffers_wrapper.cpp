@@ -197,4 +197,79 @@ namespace CanaryLib {
 
     return (b << 16) | a;
   }
+
+  uint8_t *FlatbuffersWrapper2::Finish(XTEA *xtea) {
+    if (!w_buffer || !encrypted_message) {
+      auto types_vec = fbb.CreateVector(types);
+      auto contents_vec = fbb.CreateVector(contents);
+
+      auto content_msg = CreateContentMessage(fbb, types_vec, contents_vec);
+      fbb.Finish(content_msg);
+
+      uint16_t content_size = fbb.GetSize();
+      uint8_t *content_buffer = fbb.GetBufferPointer();
+
+      // encrypt (if requested) + checksum
+      if (xtea) {
+        xtea->encrypt(content_size, fbb.GetBufferPointer());
+        encrypted = true;
+      }
+      uint32_t checksum = FlatbuffersWrapper::getChecksum(fbb.GetBufferPointer(), content_size);
+
+      auto content = fbb.CreateVector(fbb.GetBufferPointer(), content_size);
+      auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
+      fbb.Finish(header);
+
+      auto enc_message = CreateEncryptedMessage(fbb, header, content);
+      fbb.Finish(enc_message);  
+
+      encrypted_message = GetEncryptedMessage(Buffer());
+
+      uint16_t size = Size();
+      memcpy(w_buffer, &size, WRAPPER_HEADER_SIZE);
+      memcpy(w_buffer + WRAPPER_HEADER_SIZE, Buffer(), size);
+    }
+    return w_buffer;
+  }
+
+  void FlatbuffersWrapper2::reset() {
+    types.clear();
+    contents.clear();
+    encryption_enabled = true;
+    encrypted = false;
+    encrypted_message = nullptr;
+
+    // Needed for xtea, a closed buffer will ALWAYS have multiple of 8 size
+    fbb.Reset();
+    fbb.PreAlign(WRAPPER_MAX_BODY_SIZE, 8);
+  }
+
+  bool FlatbuffersWrapper2::add(flatbuffers::Offset<void> data, DataType type) {
+    if (encrypted_message) return false;
+    types.emplace_back(static_cast<uint8_t>(type));
+    contents.emplace_back(data);
+    return true;
+  }
+
+  // Copies another raw wrapper buffer
+  void FlatbuffersWrapper2::copy(const uint8_t *buffer) {
+    reset();
+    uint16_t size = loadSizeFromBuffer(buffer);
+    memcpy(w_buffer, buffer, size + WRAPPER_HEADER_SIZE);
+    fbb.PushFlatBuffer(w_buffer + WRAPPER_HEADER_SIZE, size);
+    fbb.PopBytes(2);
+    encrypted_message = GetEncryptedMessage(buffer + WRAPPER_HEADER_SIZE);
+  }
+
+  uint16_t FlatbuffersWrapper2::loadSizeFromBuffer(const uint8_t *buffer) {
+    uint16_t size;
+    memcpy(&size, buffer, WRAPPER_HEADER_SIZE);
+    return size;
+  }
+
+  bool FlatbuffersWrapper2::readChecksum() {
+    if (!encrypted_message) return true;
+    auto enc_msg = GetEncryptedMessage(Buffer());
+    return enc_msg->header()->checksum() == FlatbuffersWrapper::getChecksum(enc_msg->body()->data(), enc_msg->header()->message_size());
+  }
 }

@@ -30,6 +30,7 @@ namespace CanaryLib {
   class NetworkMessage;
   
   static constexpr int32_t WRAPPER_HEADER_SIZE = 2;
+  static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = NETWORKMESSAGE_MAXSIZE / 2;
   static constexpr int32_t WRAPPER_MAX_BODY_SIZE = NETWORKMESSAGE_MAXSIZE - WRAPPER_HEADER_SIZE;
 
   class FlatbuffersWrapper : public std::enable_shared_from_this<FlatbuffersWrapper> {
@@ -37,7 +38,7 @@ namespace CanaryLib {
       FlatbuffersWrapper() = default;
 
       // Can't copy, a wrapper its unique
-      XTEA& operator=(const XTEA&) = delete;
+      FlatbuffersWrapper& operator=(const FlatbuffersWrapper&) = delete;
 
       // Getters
       uint8_t *buffer() {
@@ -120,7 +121,106 @@ namespace CanaryLib {
       bool canWrite(const uint32_t size) const {
         return !serialized && size < WRAPPER_MAX_BODY_SIZE;
       };
+
+      std::vector<uint8_t> types;
+      std::vector<flatbuffers::Offset<void>> contents;
+  };
+
+  class FlatbuffersWrapper2 : public std::enable_shared_from_this<FlatbuffersWrapper2> {
+    public:
+      FlatbuffersWrapper2() {
+        reset();
+      };
+
+      // Can't copy, a wrapper its unique
+      FlatbuffersWrapper2& operator=(const FlatbuffersWrapper2&) = delete;
+
+      // Getters
+      uint8_t *Buffer() {
+        return fbb.GetBufferPointer();
+      }
+
+      flatbuffers::FlatBufferBuilder& Builder() {
+        return fbb;
+      }
+
+      bool Encrypted() {
+        return encrypted;
+      }
+
+      bool EncryptionEnabled() {
+        return encryption_enabled;
+      }
+      
+      const EncryptedMessage* getEncryptedMessage() {
+        return encrypted_message;
+      }
+
+      uint16_t Size() {
+        return fbb.GetSize();
+      }
+
+      std::vector<uint8_t> Types() {
+        return types;
+      }
+
+      std::vector<flatbuffers::Offset<void>> Contents() {
+        return contents;
+      }
+
+      void disableEncryption() {
+        encryption_enabled = false;
+      }
+
+      bool add(flatbuffers::Offset<void> data, DataType type);
+      void copy(const uint8_t *buffer);
+      uint8_t *Finish(XTEA *xtea = nullptr);
+      static uint16_t loadSizeFromBuffer(const uint8_t *buffer);
+      bool readChecksum();
+      void reset();
+
+    private:
+      uint8_t w_buffer[WRAPPER_MAX_BODY_SIZE];
+      std::vector<uint8_t> types;
+      std::vector<flatbuffers::Offset<void>> contents;
+
+      flatbuffers::FlatBufferBuilder fbb;
+
+      bool encryption_enabled = true;
+      bool encrypted = false;
+
+      const EncryptedMessage *encrypted_message = nullptr;
   };
 }
+
+/*
+
+      void parsePlayerData (const void* msg) {
+        auto value = reinterpret_cast<const CanaryLib::PlayerData *>(msg);
+        // do something
+      }
+
+      void parseWeaponData (const void* msg) {
+        auto value = reinterpret_cast<const CanaryLib::WeaponData *>(msg);
+        // do something
+      }
+
+      void parseRawData (const void* msg) {
+        auto value = reinterpret_cast<const CanaryLib::RawData *>(msg);
+        // do something
+      }
+
+      void parseDataError (const void* msg) {
+        spdlog::critical("Error");
+      }
+
+      std::map<CanaryLib::DataType, std::function<void (const void*)>> parseMap = {
+        {CanaryLib::DataType_PlayerData, parsePlayerData},
+        {CanaryLib::DataType_RawData, parseRawData},
+        {CanaryLib::DataType_WeaponData, parseWeaponData},
+        {CanaryLib::DataType_NONE, parseDataError}
+      };
+
+*/
 
 #endif
