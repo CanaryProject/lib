@@ -155,6 +155,10 @@ namespace CanaryLib {
       const EncryptedMessage* getEncryptedMessage() {
         return encrypted_message;
       }
+      
+      bool Finished() {
+        return !!encrypted_message;
+      }
 
       uint16_t Size() {
         return fbb.GetSize();
