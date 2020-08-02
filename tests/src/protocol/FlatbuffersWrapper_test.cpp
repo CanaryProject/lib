@@ -22,7 +22,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper1.add(weapon_data.Union(), CanaryLib::DataType_WeaponData);
 
     auto buffer = fbb.CreateVector((uint8_t *) rawStr.c_str(), rawStr.size());
-    auto raw_data = CanaryLib::CreateRawData(fbb, buffer);
+    auto raw_data = CanaryLib::CreateRawData(fbb, buffer, rawStr.size());
     fbb.Finish(raw_data);
     wrapper1.add(raw_data.Union(), CanaryLib::DataType_RawData);
   }
@@ -57,6 +57,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     auto raw = content_msg->data()->GetAs<CanaryLib::RawData>(2);
     
     CHECK_EQ(std::string((char *) raw->body()->data()), rawStr);
+    CHECK_EQ(raw->size(), rawStr.size());
   }
 
   TEST_CASE("Copy") {

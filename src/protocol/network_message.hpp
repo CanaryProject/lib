@@ -135,10 +135,15 @@ namespace CanaryLib {
       MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
       bool eof() { return m_info.m_bufferPos >= m_info.m_messageSize; }
 
-      std::shared_ptr<FlatbuffersWrapper> writeToFlatbuffersWrapper(std::shared_ptr<FlatbuffersWrapper> wrapper, bool append = false) {
+      std::shared_ptr<FlatbuffersWrapper2> writeToFlatbuffersWrapper(std::shared_ptr<FlatbuffersWrapper2> wrapper, bool append = false) {
         if (!wrapper) return wrapper;
+
+        flatbuffers::FlatBufferBuilder &fbb = wrapper->Builder();
+        auto buffer = fbb.CreateVector(m_buffer, m_info.m_messageSize);
+        auto raw_data = CanaryLib::CreateRawData(fbb, buffer, m_info.m_messageSize);
+        fbb.Finish(raw_data);
+        wrapper->add(raw_data.Union(), CanaryLib::DataType_RawData);
         
-        wrapper->write(m_buffer, m_info.m_messageSize, append);
         return wrapper;
       }
       

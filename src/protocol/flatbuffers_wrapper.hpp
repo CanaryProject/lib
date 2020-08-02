@@ -192,6 +192,33 @@ namespace CanaryLib {
 
       const EncryptedMessage *encrypted_message = nullptr;
   };
+
+  class FlatbuffersWraperBalancer {
+    public:
+      // non-copyable
+      FlatbuffersWraperBalancer(const FlatbuffersWraperBalancer&) = delete;
+      FlatbuffersWraperBalancer& operator=(const FlatbuffersWraperBalancer&) = delete;
+
+      static FlatbuffersWraperBalancer& getInstance() {
+        static FlatbuffersWraperBalancer instance;
+        return instance;
+      }
+
+      std::shared_ptr<FlatbuffersWrapper2> getOutputWrapper(std::function<void (std::shared_ptr<FlatbuffersWrapper2>)> callback) {
+        if (!outputWrapper) {
+          outputWrapper = std::make_shared<FlatbuffersWrapper2>();
+        } else if (outputWrapper->Size() > WRAPPER_MAX_SIZE_TO_CONCAT) {
+          callback(outputWrapper);
+          outputWrapper = std::make_shared<FlatbuffersWrapper2>();
+        }
+
+        return outputWrapper;
+      }
+
+    private:
+      FlatbuffersWraperBalancer() = default;
+      std::shared_ptr<FlatbuffersWrapper2> outputWrapper;
+  };
 }
 
 /*

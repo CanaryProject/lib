@@ -14,15 +14,20 @@ struct RawDataBuilder;
 struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef RawDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BODY = 4
+    VT_BODY = 4,
+    VT_SIZE = 6
   };
   const flatbuffers::Vector<uint8_t> *body() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
+  }
+  uint16_t size() const {
+    return GetField<uint16_t>(VT_SIZE, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_BODY) &&
            verifier.VerifyVector(body()) &&
+           VerifyField<uint16_t>(verifier, VT_SIZE) &&
            verifier.EndTable();
   }
 };
@@ -33,6 +38,9 @@ struct RawDataBuilder {
   flatbuffers::uoffset_t start_;
   void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
     fbb_.AddOffset(RawData::VT_BODY, body);
+  }
+  void add_size(uint16_t size) {
+    fbb_.AddElement<uint16_t>(RawData::VT_SIZE, size, 0);
   }
   explicit RawDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -47,19 +55,23 @@ struct RawDataBuilder {
 
 inline flatbuffers::Offset<RawData> CreateRawData(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0,
+    uint16_t size = 0) {
   RawDataBuilder builder_(_fbb);
   builder_.add_body(body);
+  builder_.add_size(size);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<RawData> CreateRawDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *body = nullptr) {
+    const std::vector<uint8_t> *body = nullptr,
+    uint16_t size = 0) {
   auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
   return CanaryLib::CreateRawData(
       _fbb,
-      body__);
+      body__,
+      size);
 }
 
 inline const CanaryLib::RawData *GetRawData(const void *buf) {
