@@ -210,7 +210,7 @@ namespace CanaryLib {
       uint8_t *content_buffer = fbb.GetBufferPointer();
 
       // encrypt (if requested) + checksum
-      if (xtea) {
+      if (xtea && xtea->isEnabled()) {
         xtea->encrypt(content_size, fbb.GetBufferPointer());
         encrypted = true;
       }
