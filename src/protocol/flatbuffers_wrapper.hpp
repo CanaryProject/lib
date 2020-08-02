@@ -178,7 +178,7 @@ namespace CanaryLib {
       uint8_t *Finish(XTEA *xtea = nullptr);
       static uint16_t loadSizeFromBuffer(const uint8_t *buffer);
       bool readChecksum();
-      void reset();
+      void reset(bool preAlignment = true);
 
     private:
       uint8_t w_buffer[WRAPPER_MAX_BODY_SIZE];

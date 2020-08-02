@@ -232,7 +232,7 @@ namespace CanaryLib {
     return w_buffer;
   }
 
-  void FlatbuffersWrapper2::reset() {
+  void FlatbuffersWrapper2::reset(bool preAlignment /*= true*/) {
     types.clear();
     contents.clear();
     encryption_enabled = true;
@@ -241,7 +241,7 @@ namespace CanaryLib {
 
     // Needed for xtea, a closed buffer will ALWAYS have multiple of 8 size
     fbb.Reset();
-    fbb.PreAlign(WRAPPER_MAX_BODY_SIZE, 8);
+    if (preAlignment) fbb.PreAlign(WRAPPER_MAX_BODY_SIZE, 8);
   }
 
   bool FlatbuffersWrapper2::add(flatbuffers::Offset<void> data, DataType type) {
@@ -254,16 +254,20 @@ namespace CanaryLib {
   // Copies another raw wrapper buffer
   void FlatbuffersWrapper2::copy(const uint8_t *buffer) {
     uint16_t size = loadSizeFromBuffer(buffer);
-    copy(buffer, size);
+    memcpy(w_buffer, &size, WRAPPER_HEADER_SIZE);
+    copy(buffer + WRAPPER_HEADER_SIZE, size);
   }
 
   // Copies another raw wrapper buffer
   void FlatbuffersWrapper2::copy(const uint8_t *buffer, uint16_t size) {
-    reset();
-    memcpy(w_buffer, buffer, size + WRAPPER_HEADER_SIZE);
-    fbb.PushFlatBuffer(w_buffer + WRAPPER_HEADER_SIZE, size);
-    fbb.PopBytes(2);
-    encrypted_message = GetEncryptedMessage(w_buffer + WRAPPER_HEADER_SIZE);
+    // only copies well formed multiple of 8 sized buffers
+    if (size % 8) return;
+    // reset without pre alignment, since its a copy
+    reset(0);
+    uint8_t *body = w_buffer + WRAPPER_HEADER_SIZE;
+    memcpy(body, buffer, size);
+    fbb.PushFlatBuffer(body, size);
+    encrypted_message = GetEncryptedMessage(body);
   }
 
   uint16_t FlatbuffersWrapper2::loadSizeFromBuffer(const uint8_t *buffer) {
@@ -274,7 +278,6 @@ namespace CanaryLib {
 
   bool FlatbuffersWrapper2::readChecksum() {
     if (!encrypted_message) return true;
-    auto enc_msg = GetEncryptedMessage(Buffer());
-    return enc_msg->header()->checksum() == FlatbuffersWrapper::getChecksum(enc_msg->body()->data(), enc_msg->header()->message_size());
+    return encrypted_message->header()->checksum() == FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->header()->message_size());
   }
 }

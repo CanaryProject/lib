@@ -9,6 +9,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   uint8_t dmg = 123;
 
   void generateBaseWrapper(CanaryLib::FlatbuffersWrapper2 &wrapper1) {
+    xtea.generateKey();
     flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
 
     auto name = fbb.CreateString(nameStr);
@@ -27,7 +28,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper1.add(raw_data.Union(), CanaryLib::DataType_RawData);
   }
 
-  void validateBasic(CanaryLib::FlatbuffersWrapper2 &wrapper1, CanaryLib::XTEA* _xtea) {
+  void validateBasic(CanaryLib::FlatbuffersWrapper2 &wrapper1, CanaryLib::XTEA* _xtea = nullptr) {
     CHECK(wrapper1.readChecksum());
     CHECK_EQ(wrapper1.Encrypted(), !!_xtea);
 
@@ -65,6 +66,11 @@ TEST_SUITE("FlatbuffersWrapper") {
     CanaryLib::FlatbuffersWrapper2 wrapper2;
     generateBaseWrapper(wrapper1);
     wrapper2.copy(wrapper1.Finish());
+    validateBasic(wrapper2);
+    CHECK_EQ(wrapper2.Size(), wrapper1.Size());
+    wrapper2.copy(wrapper1.Finish() + CanaryLib::WRAPPER_HEADER_SIZE, wrapper1.Size());
+    validateBasic(wrapper2);
+    CHECK_EQ(wrapper2.Size(), wrapper1.Size());
   }
 
   TEST_CASE("Reset") {
@@ -112,6 +118,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("LoadSizeFromBuffer") {
+    xtea.generateKey();
     uint8_t buffer[128];
     uint16_t size = 64000;
     uint16_t newSize = 3241;
