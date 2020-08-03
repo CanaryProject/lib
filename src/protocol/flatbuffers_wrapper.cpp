@@ -211,12 +211,11 @@ namespace CanaryLib {
 
       // encrypt (if requested) + checksum
       if (EncryptionEnabled() && xtea && xtea->isEnabled()) {
-        xtea->encrypt(content_size, fbb.GetBufferPointer());
+        xtea->encrypt(content_size, content_buffer);
         encrypted = true;
       }
-      uint32_t checksum = FlatbuffersWrapper::getChecksum(fbb.GetBufferPointer(), content_size);
-
-      auto content = fbb.CreateVector(fbb.GetBufferPointer(), content_size);
+      uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
+      auto content = fbb.CreateVector(content_buffer, content_size);
       auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
       fbb.Finish(header);
 
