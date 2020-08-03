@@ -88,10 +88,12 @@ namespace CanaryLib {
         xtea->encrypt(content_size, content_buffer);
         encrypted = true;
       }
-      auto content = fbb.CreateVector(content_buffer, content_size);
       uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
+      auto content = fbb.CreateVector(content_buffer, content_size);
+      auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
+      fbb.Finish(header);
 
-      auto enc_message = CreateEncryptedMessage(fbb, checksum, content_size, encrypted, content);
+      auto enc_message = CreateEncryptedMessage(fbb, header, content);
       fbb.Finish(enc_message);  
 
       encrypted_message = GetEncryptedMessage(Buffer());
@@ -160,7 +162,7 @@ namespace CanaryLib {
 
   bool FlatbuffersWrapper::readChecksum() {
     if (!Finished()) return true;
-    spdlog::critical("{} {}", encrypted_message->checksum(), FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->message_size()));
-    return encrypted_message->checksum() == FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->message_size());
+    spdlog::critical("{} {}", encrypted_message->header()->checksum(), FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->header()->message_size()));
+    return encrypted_message->header()->checksum() == FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->header()->message_size());
   }
 }

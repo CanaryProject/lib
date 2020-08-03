@@ -36,11 +36,11 @@ TEST_SUITE("FlatbuffersWrapper") {
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
 
     if (_xtea)
-      _xtea->decrypt(enc_msg->message_size(), body_buffer);
+      _xtea->decrypt(enc_msg->header()->message_size(), body_buffer);
 
     auto content_msg = CanaryLib::GetContentMessage(body_buffer);
 
-    CHECK_EQ(enc_msg->encrypted(), !!_xtea);
+    CHECK_EQ(enc_msg->header()->encrypted(), !!_xtea);
     CHECK_EQ(content_msg->data()->size(), 3);
 
     CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(0), CanaryLib::DataType_PlayerData);
