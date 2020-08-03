@@ -6,6 +6,8 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "header_generated.h"
+
 namespace CanaryLib {
 
 struct EncryptedMessage;
@@ -14,28 +16,19 @@ struct EncryptedMessageBuilder;
 struct EncryptedMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef EncryptedMessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CHECKSUM = 4,
-    VT_MESSAGE_SIZE = 6,
-    VT_ENCRYPTED = 8,
-    VT_BODY = 10
+    VT_HEADER = 4,
+    VT_BODY = 6
   };
-  uint32_t checksum() const {
-    return GetField<uint32_t>(VT_CHECKSUM, 0);
-  }
-  uint16_t message_size() const {
-    return GetField<uint16_t>(VT_MESSAGE_SIZE, 0);
-  }
-  bool encrypted() const {
-    return GetField<uint8_t>(VT_ENCRYPTED, 1) != 0;
+  const CanaryLib::Header *header() const {
+    return GetPointer<const CanaryLib::Header *>(VT_HEADER);
   }
   const flatbuffers::Vector<uint8_t> *body() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_CHECKSUM) &&
-           VerifyField<uint16_t>(verifier, VT_MESSAGE_SIZE) &&
-           VerifyField<uint8_t>(verifier, VT_ENCRYPTED) &&
+           VerifyOffset(verifier, VT_HEADER) &&
+           verifier.VerifyTable(header()) &&
            VerifyOffset(verifier, VT_BODY) &&
            verifier.VerifyVector(body()) &&
            verifier.EndTable();
@@ -46,14 +39,8 @@ struct EncryptedMessageBuilder {
   typedef EncryptedMessage Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_checksum(uint32_t checksum) {
-    fbb_.AddElement<uint32_t>(EncryptedMessage::VT_CHECKSUM, checksum, 0);
-  }
-  void add_message_size(uint16_t message_size) {
-    fbb_.AddElement<uint16_t>(EncryptedMessage::VT_MESSAGE_SIZE, message_size, 0);
-  }
-  void add_encrypted(bool encrypted) {
-    fbb_.AddElement<uint8_t>(EncryptedMessage::VT_ENCRYPTED, static_cast<uint8_t>(encrypted), 1);
+  void add_header(flatbuffers::Offset<CanaryLib::Header> header) {
+    fbb_.AddOffset(EncryptedMessage::VT_HEADER, header);
   }
   void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
     fbb_.AddOffset(EncryptedMessage::VT_BODY, body);
@@ -71,30 +58,22 @@ struct EncryptedMessageBuilder {
 
 inline flatbuffers::Offset<EncryptedMessage> CreateEncryptedMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
-    uint32_t checksum = 0,
-    uint16_t message_size = 0,
-    bool encrypted = true,
+    flatbuffers::Offset<CanaryLib::Header> header = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0) {
   EncryptedMessageBuilder builder_(_fbb);
   builder_.add_body(body);
-  builder_.add_checksum(checksum);
-  builder_.add_message_size(message_size);
-  builder_.add_encrypted(encrypted);
+  builder_.add_header(header);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<EncryptedMessage> CreateEncryptedMessageDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    uint32_t checksum = 0,
-    uint16_t message_size = 0,
-    bool encrypted = true,
+    flatbuffers::Offset<CanaryLib::Header> header = 0,
     const std::vector<uint8_t> *body = nullptr) {
   auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
   return CanaryLib::CreateEncryptedMessage(
       _fbb,
-      checksum,
-      message_size,
-      encrypted,
+      header,
       body__);
 }
 
