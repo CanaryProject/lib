@@ -26,8 +26,6 @@
 #include "general.hpp"
 
 namespace CanaryLib {
-  class FlatbuffersWrapper;
-
 	enum MessageOperationType {
     MESSAGE_OPERATION_STANDARD,
     MESSAGE_OPERATION_PEEK
@@ -134,18 +132,6 @@ namespace CanaryLib {
 
       MsgSize_t getUnreadSize() { return m_info.m_messageSize - m_info.m_bufferPos; }
       bool eof() { return m_info.m_bufferPos >= m_info.m_messageSize; }
-
-      std::shared_ptr<FlatbuffersWrapper2> writeToFlatbuffersWrapper(std::shared_ptr<FlatbuffersWrapper2> wrapper) {
-        if (!wrapper) return wrapper;
-
-        flatbuffers::FlatBufferBuilder &fbb = wrapper->Builder();
-        auto buffer = fbb.CreateVector(m_buffer, m_info.m_messageSize);
-        auto raw_data = CanaryLib::CreateRawData(fbb, buffer, m_info.m_messageSize);
-        fbb.Finish(raw_data);
-        wrapper->add(raw_data.Union(), CanaryLib::DataType_RawData);
-        
-        return wrapper;
-      }
       
     protected:
       NetworkMessageInfo m_info;

@@ -8,7 +8,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   uint16_t id16 = 65000;
   uint8_t dmg = 123;
 
-  void generateBaseWrapper(CanaryLib::FlatbuffersWrapper2 &wrapper1) {
+  void generateBaseWrapper(CanaryLib::FlatbuffersWrapper &wrapper1) {
     xtea.generateKey();
     flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
 
@@ -28,7 +28,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     wrapper1.add(raw_data.Union(), CanaryLib::DataType_RawData);
   }
 
-  void validateBasic(CanaryLib::FlatbuffersWrapper2 &wrapper1, CanaryLib::XTEA* _xtea = nullptr) {
+  void validateBasic(CanaryLib::FlatbuffersWrapper &wrapper1, CanaryLib::XTEA* _xtea = nullptr) {
     CHECK(wrapper1.readChecksum());
     CHECK_EQ(wrapper1.Encrypted(), !!_xtea);
 
@@ -36,11 +36,11 @@ TEST_SUITE("FlatbuffersWrapper") {
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
 
     if (_xtea)
-      _xtea->decrypt(enc_msg->header()->message_size(), body_buffer);
+      _xtea->decrypt(enc_msg->message_size(), body_buffer);
 
     auto content_msg = CanaryLib::GetContentMessage(body_buffer);
 
-    CHECK_EQ(enc_msg->header()->encrypted(), !!_xtea);
+    CHECK_EQ(enc_msg->encrypted(), !!_xtea);
     CHECK_EQ(content_msg->data()->size(), 3);
 
     CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(0), CanaryLib::DataType_PlayerData);
@@ -63,8 +63,8 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Copy") {
-    CanaryLib::FlatbuffersWrapper2 wrapper1;
-    CanaryLib::FlatbuffersWrapper2 wrapper2;
+    CanaryLib::FlatbuffersWrapper wrapper1;
+    CanaryLib::FlatbuffersWrapper wrapper2;
     generateBaseWrapper(wrapper1);
     wrapper2.copy(wrapper1.Finish());
     validateBasic(wrapper2);
@@ -75,7 +75,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Test with NetworkMessage") {
-    CanaryLib::FlatbuffersWrapper2 wrapper;
+    CanaryLib::FlatbuffersWrapper wrapper;
     
     CanaryLib::NetworkMessage msg;
     flatbuffers::FlatBufferBuilder &fbb = wrapper.Builder();
@@ -84,7 +84,7 @@ TEST_SUITE("FlatbuffersWrapper") {
     fbb.Finish(raw_data);
     wrapper.add(raw_data.Union(), CanaryLib::DataType_RawData);
 
-    CanaryLib::FlatbuffersWrapper2 inputWrapper;
+    CanaryLib::FlatbuffersWrapper inputWrapper;
     wrapper.Finish();
     inputWrapper.copy(wrapper.Finish());
 
@@ -92,7 +92,6 @@ TEST_SUITE("FlatbuffersWrapper") {
     bool checksummed = inputWrapper.readChecksum();
 
     auto enc_msg = inputWrapper.getEncryptedMessage();
-    auto header = enc_msg->header();
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
 
     auto content_msg = CanaryLib::GetContentMessage(body_buffer);
@@ -101,7 +100,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   TEST_CASE("Reset") {
     flatbuffers::FlatBufferBuilder fbb;
     fbb.PreAlign(CanaryLib::WRAPPER_MAX_BODY_SIZE, 8);
-    CanaryLib::FlatbuffersWrapper2 wrapper1;
+    CanaryLib::FlatbuffersWrapper wrapper1;
     generateBaseWrapper(wrapper1);
     wrapper1.Finish(&xtea);
     validateBasic(wrapper1, &xtea);
@@ -116,7 +115,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Finish") {
-    CanaryLib::FlatbuffersWrapper2 wrapper1;
+    CanaryLib::FlatbuffersWrapper wrapper1;
     generateBaseWrapper(wrapper1);
     wrapper1.Finish();
     validateBasic(wrapper1, nullptr);
@@ -128,7 +127,7 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   TEST_CASE("Add") {
-    CanaryLib::FlatbuffersWrapper2 wrapper1;
+    CanaryLib::FlatbuffersWrapper wrapper1;
     generateBaseWrapper(wrapper1);
     CHECK_EQ(wrapper1.Types().size(), 3);
     CHECK_EQ(wrapper1.Contents().size(), 3);
@@ -149,8 +148,8 @@ TEST_SUITE("FlatbuffersWrapper") {
     uint16_t newSize = 3241;
 
     memcpy(buffer, &size, 2);
-    CHECK_EQ(CanaryLib::FlatbuffersWrapper2::loadSizeFromBuffer(buffer), size);
+    CHECK_EQ(CanaryLib::FlatbuffersWrapper::loadSizeFromBuffer(buffer), size);
     memcpy(buffer, &newSize, 2);
-    CHECK_EQ(CanaryLib::FlatbuffersWrapper2::loadSizeFromBuffer(buffer), newSize);
+    CHECK_EQ(CanaryLib::FlatbuffersWrapper::loadSizeFromBuffer(buffer), newSize);
   }
 }

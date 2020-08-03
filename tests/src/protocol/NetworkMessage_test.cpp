@@ -140,28 +140,24 @@ TEST_SUITE("NetworkMessage") {
     uint8_t *body_buffer = fbb.GetBufferPointer();
     xtea.encrypt(size, body_buffer);
 
+    auto body = fbb.CreateVector(body_buffer, size);
     uint32_t checksum = CanaryLib::FlatbuffersWrapper::getChecksum(body_buffer, size);
 
-    auto body = fbb.CreateVector(body_buffer, size);
-    auto header = CanaryLib::CreateHeader(fbb, checksum, size, size, false);
-    fbb.Finish(header);
-
-    auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, body);
+    auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, checksum, size, false, body);
 
     fbb.Finish(encrypted_message);  
 
     auto enc_msg = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
 
     // auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
-    CHECK_EQ(enc_msg->header()->encrypted_size(), size);
-    CHECK_EQ(enc_msg->header()->message_size(), size);
-    CHECK_FALSE(enc_msg->header()->encrypted());
+    CHECK_EQ(enc_msg->message_size(), size);
+    CHECK_FALSE(enc_msg->encrypted());
 
     auto finalbuf = enc_msg->body()->Data();
 
     checksum = CanaryLib::FlatbuffersWrapper::getChecksum(finalbuf, size);
 
-    CHECK_EQ(checksum, enc_msg->header()->checksum());
+    CHECK_EQ(checksum, enc_msg->checksum());
 
     xtea.decrypt(size, (uint8_t *) finalbuf);
     auto content = CanaryLib::GetContentMessage(finalbuf);

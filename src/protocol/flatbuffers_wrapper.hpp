@@ -26,114 +26,24 @@
 #include "../crypt/xtea.hpp"
 #include "../pch.hpp"
 
+#include "network_message.hpp"
+
 namespace CanaryLib {
-  class NetworkMessage;
-  
   static constexpr int32_t WRAPPER_HEADER_SIZE = 2;
   static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = 60000;
   static constexpr int32_t WRAPPER_MAX_BODY_SIZE = NETWORKMESSAGE_MAXSIZE - WRAPPER_HEADER_SIZE;
 
   class FlatbuffersWrapper : public std::enable_shared_from_this<FlatbuffersWrapper> {
     public:
-      FlatbuffersWrapper() = default;
-
-      // Can't copy, a wrapper its unique
-      FlatbuffersWrapper& operator=(const FlatbuffersWrapper&) = delete;
-
-      // Getters
-      uint8_t *buffer() {
-        return w_buffer;
-      }
-
-      uint8_t *body() {
-        return w_buffer + WRAPPER_HEADER_SIZE;
-      }
-
-      const uint32_t checksum() {
-        return getChecksum(body(), wrapper_size);
-      }
-
-      bool isSerialized() {
-        return serialized;
-      }
-
-      uint16_t size() {
-        return wrapper_size;
-      }
-
-      uint16_t msgSize() {
-        return message_size;
-      }
-
-      uint16_t outputSize() {
-        return wrapper_size + WRAPPER_HEADER_SIZE;
-      }
-
-      bool isEncrypted() {
-        return encrypted;
-      }
-
-      bool isEncryptionEnabled() {
-        return encryption_enabled;
-      }
-
-      void disableEncryption() {
-        encryption_enabled = false;
-      }
-
-      void reset() {
-        message_size = 0;
-        wrapper_size = 0;
-        serialized = false;
-      }
-
-      // Flatbuffers manipulators
-      void serialize();
-      void deserialize();
-      const EncryptedMessage *buildEncryptedMessage();
-      NetworkMessage buildRawMessage();
-
-      // Wrapper buffer manipulators
-      void copy(const uint8_t *bytes, bool isSerialized = true);
-      bool write(const void *bytes, uint16_t size, bool append = false);
-      uint16_t loadBufferSize(const uint8_t *buffer);
-      void writeSize(uint16_t size);
-
-      // Content manipulators
-      void decryptXTEA(XTEA xtea);
-      void encryptXTEA(XTEA xtea);
-      uint16_t prepareXTEAEncryption();
-
-      bool readChecksum();
-
-      static uint32_t getChecksum(const uint8_t* data, size_t length);
-
-    private:
-      uint8_t w_buffer[NETWORKMESSAGE_MAXSIZE];
-      uint16_t message_size = 0;
-      uint16_t encrypted_size = 0;
-      uint16_t wrapper_size = 0;
-
-      bool encryption_enabled = true;
-      bool encrypted = false;
-      bool serialized = false;
-
-      bool canWrite(const uint32_t size) const {
-        return !serialized && size < WRAPPER_MAX_BODY_SIZE;
+      FlatbuffersWrapper() {
+        reset();
       };
-
-      std::vector<uint8_t> types;
-      std::vector<flatbuffers::Offset<void>> contents;
-  };
-
-  class FlatbuffersWrapper2 : public std::enable_shared_from_this<FlatbuffersWrapper2> {
-    public:
-      FlatbuffersWrapper2() {
+      ~FlatbuffersWrapper() {
         reset();
       };
 
       // Can't copy, a wrapper its unique
-      FlatbuffersWrapper2& operator=(const FlatbuffersWrapper2&) = delete;
+      FlatbuffersWrapper& operator=(const FlatbuffersWrapper&) = delete;
 
       // Getters
       uint8_t *Buffer() {
@@ -176,6 +86,19 @@ namespace CanaryLib {
         encryption_enabled = false;
       }
 
+      void addRawMessage(NetworkMessage& _msg) {
+        if (Finished()) return;
+        NetworkMessage msg;
+        msg.write(_msg.getBuffer(), _msg.getLength());
+
+        auto buffer = fbb.CreateVector(msg.getBuffer(), msg.getLength());
+        auto raw_data = CanaryLib::CreateRawData(fbb, buffer, msg.getLength());
+        fbb.Finish(raw_data);
+        add(raw_data.Union(), CanaryLib::DataType_RawData);
+        
+        msgQueue.emplace_back(msg);
+      }
+
       bool add(flatbuffers::Offset<void> data, DataType type);
       void copy(const uint8_t *buffer);
       void copy(const uint8_t *buffer, uint16_t size);
@@ -184,6 +107,8 @@ namespace CanaryLib {
       bool readChecksum();
       void reset(bool preAlignment = true);
 
+      static uint32_t getChecksum(const uint8_t* data, size_t length);
+
     private:
       uint8_t w_buffer[WRAPPER_MAX_BODY_SIZE];
       std::vector<uint8_t> types;
@@ -191,8 +116,11 @@ namespace CanaryLib {
 
       flatbuffers::FlatBufferBuilder fbb;
 
+      std::list<NetworkMessage> msgQueue;
+
       bool encryption_enabled = true;
       bool encrypted = false;
+      bool finished = false;
 
       const EncryptedMessage *encrypted_message = nullptr;
   };
@@ -208,12 +136,12 @@ namespace CanaryLib {
         return instance;
       }
 
-      std::shared_ptr<FlatbuffersWrapper2> getOutputWrapper(std::function<void (std::shared_ptr<FlatbuffersWrapper2>)> callback) {
+      std::shared_ptr<FlatbuffersWrapper> getOutputWrapper(std::function<void (std::shared_ptr<FlatbuffersWrapper>)> callback) {
         if (!outputWrapper) {
-          outputWrapper = std::make_shared<FlatbuffersWrapper2>();
+          outputWrapper = std::make_shared<FlatbuffersWrapper>();
         } else if (outputWrapper->Size() > WRAPPER_MAX_SIZE_TO_CONCAT) {
           callback(outputWrapper);
-          outputWrapper = std::make_shared<FlatbuffersWrapper2>();
+          outputWrapper = std::make_shared<FlatbuffersWrapper>();
         }
 
         return outputWrapper;
@@ -221,7 +149,7 @@ namespace CanaryLib {
 
     private:
       FlatbuffersWraperBalancer() = default;
-      std::shared_ptr<FlatbuffersWrapper2> outputWrapper;
+      std::shared_ptr<FlatbuffersWrapper> outputWrapper;
   };
 }
 

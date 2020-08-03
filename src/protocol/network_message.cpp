@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "flatbuffers_wrapper.hpp"
 #include "network_message.hpp"
 
 namespace CanaryLib {
