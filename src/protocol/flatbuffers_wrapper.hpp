@@ -57,7 +57,7 @@ namespace CanaryLib {
       }
 
       const EncryptedMessage* getEncryptedMessage() {
-        GetEncryptedMessage(fbb.GetBufferPointer());
+        return GetEncryptedMessage(fbb.GetBufferPointer());
       }
 
       bool isEncryptionEnabled() {
