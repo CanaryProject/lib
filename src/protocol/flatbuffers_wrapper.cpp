@@ -21,6 +21,94 @@
 #include "network_message.hpp"
 
 namespace CanaryLib {
+  uint8_t *FlatbuffersWrapper::Finish(XTEA *xtea) {
+    if (!isWriteLocked()) {
+      lockBuffersWrite = true;
+      auto types_vec = fbb.CreateVector(types);
+      auto contents_vec = fbb.CreateVector(contents);
+
+      auto content_msg = CreateContentMessage(fbb, types_vec, contents_vec);
+      fbb.Finish(content_msg);
+
+      uint16_t content_size = fbb.GetSize();
+      uint8_t *content_buffer = fbb.GetBufferPointer();
+
+      bool encrypted = false;
+      // encrypt (if requested) + checksum
+      if (isEncryptionEnabled() && xtea && xtea->isEnabled()) {
+        xtea->encrypt(content_size, content_buffer);
+        encrypted = true;
+      }
+      uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
+      auto content = fbb.CreateVector(content_buffer, content_size);
+      auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
+      fbb.Finish(header);
+
+      auto enc_message = CreateEncryptedMessage(fbb, header, content);
+      fbb.Finish(enc_message);  
+
+      spdlog::critical("encode {} {}", readChecksum(), FlatbuffersWrapper::getChecksum(content_buffer, content_size));
+      w_size = fbb.GetSize();
+      memcpy(w_buffer, &w_size, WRAPPER_HEADER_SIZE);
+      memcpy(w_buffer + WRAPPER_HEADER_SIZE, fbb.GetBufferPointer(), w_size);
+    }
+    return w_buffer;
+  }
+
+  void FlatbuffersWrapper::reset(bool preAlignment /*= true*/) {
+    w_size = 0;
+    types.clear();
+    contents.clear();
+    msgQueue.clear();
+
+    enableXteaEncryption = true;
+    lockBuffersWrite = false;
+
+    // Needed for xtea, a closed buffer will ALWAYS have multiple of 8 size
+    fbb.Reset();
+    if (preAlignment) fbb.PreAlign(WRAPPER_MAX_BODY_SIZE, 8);
+  }
+
+  bool FlatbuffersWrapper::add(flatbuffers::Offset<void> data, DataType type) {
+    if (isWriteLocked()) return false;
+    types.emplace_back(static_cast<uint8_t>(type));
+    contents.emplace_back(data);
+    w_size = fbb.GetSize();
+    return true;
+  }
+
+  // Copies another raw wrapper buffer
+  void FlatbuffersWrapper::copy(const uint8_t *buffer) {
+    loadSizeFromBuffer(buffer);
+    memcpy(w_buffer, &w_size, WRAPPER_HEADER_SIZE);
+    copy(buffer + WRAPPER_HEADER_SIZE, w_size);
+  }
+
+  // Copies another raw wrapper buffer
+  void FlatbuffersWrapper::copy(const uint8_t *buffer, uint16_t size) {
+    // only copies well formed multiple of 8 sized buffers
+    if (size % 8) return;
+    // reset without pre alignment, since its a copy
+    reset(false);
+    w_size = size;
+    lockBuffersWrite = true;
+
+    uint8_t *body = w_buffer + WRAPPER_HEADER_SIZE;
+    memcpy(body, buffer, size);
+    fbb.PushFlatBuffer(body, size);
+  }
+
+  uint16_t FlatbuffersWrapper::loadSizeFromBuffer(const uint8_t *buffer) {
+    memcpy(&w_size, buffer, WRAPPER_HEADER_SIZE);
+    return w_size;
+  }
+
+  bool FlatbuffersWrapper::readChecksum() {
+    if (!isWriteLocked()) return true;
+    spdlog::critical("{} {}", getEncryptedMessage()->header()->checksum(), FlatbuffersWrapper::getChecksum(getEncryptedMessage()->body()->data(), getEncryptedMessage()->header()->message_size()));
+    return getEncryptedMessage()->header()->checksum() == FlatbuffersWrapper::getChecksum(getEncryptedMessage()->body()->data(), getEncryptedMessage()->header()->message_size());
+  }
+
   uint32_t FlatbuffersWrapper::getChecksum(const uint8_t* data, size_t length) {
     if (length > NETWORKMESSAGE_MAXSIZE) {
       return 0;
@@ -69,100 +157,5 @@ namespace CanaryLib {
     }
 
     return (b << 16) | a;
-  }
-
-  uint8_t *FlatbuffersWrapper::Finish(XTEA *xtea) {
-    if (!Finished()) {
-      finished = true;
-      auto types_vec = fbb.CreateVector(types);
-      auto contents_vec = fbb.CreateVector(contents);
-
-      auto content_msg = CreateContentMessage(fbb, types_vec, contents_vec);
-      fbb.Finish(content_msg);
-
-      uint16_t content_size = fbb.GetSize();
-      uint8_t *content_buffer = fbb.GetBufferPointer();
-
-      // encrypt (if requested) + checksum
-      if (EncryptionEnabled() && xtea && xtea->isEnabled()) {
-        xtea->encrypt(content_size, content_buffer);
-        encrypted = true;
-      }
-      uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
-      auto content = fbb.CreateVector(content_buffer, content_size);
-      auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
-      fbb.Finish(header);
-
-      auto enc_message = CreateEncryptedMessage(fbb, header, content);
-      fbb.Finish(enc_message);  
-
-      encrypted_message = GetEncryptedMessage(Buffer());
-      if (!readChecksum()) {
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-        spdlog::critical("aaa {}", FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-      }
-      spdlog::critical("encode {} {}", readChecksum(), FlatbuffersWrapper::getChecksum(content_buffer, content_size));
-      uint16_t size = Size();
-      memcpy(w_buffer, &size, WRAPPER_HEADER_SIZE);
-      memcpy(w_buffer + WRAPPER_HEADER_SIZE, Buffer(), size);
-    }
-    return w_buffer;
-  }
-
-  void FlatbuffersWrapper::reset(bool preAlignment /*= true*/) {
-    types.clear();
-    contents.clear();
-    msgQueue.clear();
-    encryption_enabled = true;
-    encrypted = false;
-    finished = false;
-    encrypted_message = nullptr;
-
-    // Needed for xtea, a closed buffer will ALWAYS have multiple of 8 size
-    fbb.Reset();
-    if (preAlignment) fbb.PreAlign(WRAPPER_MAX_BODY_SIZE, 8);
-  }
-
-  bool FlatbuffersWrapper::add(flatbuffers::Offset<void> data, DataType type) {
-    if (Finished()) return false;
-    types.emplace_back(static_cast<uint8_t>(type));
-    contents.emplace_back(data);
-    return true;
-  }
-
-  // Copies another raw wrapper buffer
-  void FlatbuffersWrapper::copy(const uint8_t *buffer) {
-    uint16_t size = loadSizeFromBuffer(buffer);
-    memcpy(w_buffer, &size, WRAPPER_HEADER_SIZE);
-    copy(buffer + WRAPPER_HEADER_SIZE, size);
-  }
-
-  // Copies another raw wrapper buffer
-  void FlatbuffersWrapper::copy(const uint8_t *buffer, uint16_t size) {
-    // only copies well formed multiple of 8 sized buffers
-    if (size % 8) return;
-    // reset without pre alignment, since its a copy
-    reset(0);
-    uint8_t *body = w_buffer + WRAPPER_HEADER_SIZE;
-    memcpy(body, buffer, size);
-    fbb.PushFlatBuffer(body, size);
-    encrypted_message = GetEncryptedMessage(body);
-    finished = true;
-  }
-
-  uint16_t FlatbuffersWrapper::loadSizeFromBuffer(const uint8_t *buffer) {
-    uint16_t size;
-    memcpy(&size, buffer, WRAPPER_HEADER_SIZE);
-    return size;
-  }
-
-  bool FlatbuffersWrapper::readChecksum() {
-    if (!Finished()) return true;
-    spdlog::critical("{} {}", encrypted_message->header()->checksum(), FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->header()->message_size()));
-    return encrypted_message->header()->checksum() == FlatbuffersWrapper::getChecksum(encrypted_message->body()->data(), encrypted_message->header()->message_size());
   }
 }

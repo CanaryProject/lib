@@ -29,10 +29,11 @@ TEST_SUITE("FlatbuffersWrapper") {
   }
 
   void validateBasic(CanaryLib::FlatbuffersWrapper &wrapper1, CanaryLib::XTEA* _xtea = nullptr) {
-    CHECK(wrapper1.readChecksum());
-    CHECK_EQ(wrapper1.Encrypted(), !!_xtea);
-
     auto enc_msg = wrapper1.getEncryptedMessage();
+
+    CHECK_EQ(wrapper1.isWriteLocked(), true);
+    CHECK(wrapper1.readChecksum());
+
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
 
     if (_xtea)
@@ -106,10 +107,9 @@ TEST_SUITE("FlatbuffersWrapper") {
     validateBasic(wrapper1, &xtea);
 
     wrapper1.reset();
-    CHECK(wrapper1.EncryptionEnabled());
-    CHECK_FALSE(wrapper1.Encrypted());
-    CHECK_FALSE(!!wrapper1.getEncryptedMessage());
-    CHECK_EQ(wrapper1.Size(), fbb.GetSize());
+    CHECK(wrapper1.isEncryptionEnabled());
+    CHECK_FALSE(wrapper1.isWriteLocked());
+    CHECK_EQ(wrapper1.Size(), 0);
     CHECK_EQ(wrapper1.Types().size(), 0);
     CHECK_EQ(wrapper1.Contents().size(), 0);
   }
@@ -133,23 +133,21 @@ TEST_SUITE("FlatbuffersWrapper") {
     CHECK_EQ(wrapper1.Contents().size(), 3);
 
     wrapper1.Finish();
-
-    flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
-    auto buffer = fbb.CreateVector((uint8_t *) rawStr.c_str(), rawStr.size());
-    auto raw_data = CanaryLib::CreateRawData(fbb, buffer);
-    fbb.Finish(raw_data);
-    CHECK_FALSE(wrapper1.add(raw_data.Union(), CanaryLib::DataType_RawData));
+    CHECK_THROWS_AS(flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder(), std::domain_error);
   }
 
   TEST_CASE("LoadSizeFromBuffer") {
+    CanaryLib::FlatbuffersWrapper wrapper1;
     xtea.generateKey();
     uint8_t buffer[128];
     uint16_t size = 64000;
     uint16_t newSize = 3241;
 
     memcpy(buffer, &size, 2);
-    CHECK_EQ(CanaryLib::FlatbuffersWrapper::loadSizeFromBuffer(buffer), size);
+    CHECK_EQ(wrapper1.loadSizeFromBuffer(buffer), size);
+    CHECK_EQ(wrapper1.Size(), size);
     memcpy(buffer, &newSize, 2);
-    CHECK_EQ(CanaryLib::FlatbuffersWrapper::loadSizeFromBuffer(buffer), newSize);
+    CHECK_EQ(wrapper1.loadSizeFromBuffer(buffer), newSize);
+    CHECK_EQ(wrapper1.Size(), newSize);
   }
 }

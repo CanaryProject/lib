@@ -47,31 +47,33 @@ namespace CanaryLib {
 
       // Getters
       uint8_t *Buffer() {
-        return fbb.GetBufferPointer();
+        return w_buffer;
       }
 
       flatbuffers::FlatBufferBuilder& Builder() {
+        if (isWriteLocked()) 
+          throw std::domain_error("[FlatbuffersWrapper::Builder]: Can't access the builder of a write locked wrapper.");
         return fbb;
       }
 
-      bool Encrypted() {
-        return encrypted;
+      const EncryptedMessage* getEncryptedMessage() {
+        GetEncryptedMessage(fbb.GetBufferPointer());
       }
 
-      bool EncryptionEnabled() {
-        return encryption_enabled;
+      bool isEncryptionEnabled() {
+        return enableXteaEncryption;
+      }
+
+      void disableEncryption() {
+        enableXteaEncryption = false;
       }
       
-      const EncryptedMessage* getEncryptedMessage() {
-        return encrypted_message;
-      }
-      
-      bool Finished() {
-        return !!encrypted_message;
+      bool isWriteLocked() {
+        return lockBuffersWrite;
       }
 
       uint16_t Size() {
-        return fbb.GetSize();
+        return w_size;
       }
 
       std::vector<uint8_t> Types() {
@@ -82,12 +84,8 @@ namespace CanaryLib {
         return contents;
       }
 
-      void disableEncryption() {
-        encryption_enabled = false;
-      }
-
       void addRawMessage(NetworkMessage& _msg) {
-        if (Finished()) return;
+        if (isWriteLocked()) return;
         NetworkMessage msg;
         msg.write(_msg.getBuffer(), _msg.getLength());
 
@@ -95,7 +93,7 @@ namespace CanaryLib {
         auto raw_data = CanaryLib::CreateRawData(fbb, buffer, msg.getLength());
         fbb.Finish(raw_data);
         add(raw_data.Union(), CanaryLib::DataType_RawData);
-        
+
         msgQueue.emplace_back(msg);
       }
 
@@ -103,14 +101,17 @@ namespace CanaryLib {
       void copy(const uint8_t *buffer);
       void copy(const uint8_t *buffer, uint16_t size);
       uint8_t *Finish(XTEA *xtea = nullptr);
-      static uint16_t loadSizeFromBuffer(const uint8_t *buffer);
+      uint16_t loadSizeFromBuffer(const uint8_t *buffer);
       bool readChecksum();
+
       void reset(bool preAlignment = true);
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
 
     private:
       uint8_t w_buffer[WRAPPER_MAX_BODY_SIZE];
+      uint16_t w_size;
+
       std::vector<uint8_t> types;
       std::vector<flatbuffers::Offset<void>> contents;
 
@@ -118,11 +119,8 @@ namespace CanaryLib {
 
       std::list<NetworkMessage> msgQueue;
 
-      bool encryption_enabled = true;
-      bool encrypted = false;
-      bool finished = false;
-
-      const EncryptedMessage *encrypted_message = nullptr;
+      bool enableXteaEncryption = true;
+      bool lockBuffersWrite = false;
   };
 
   class FlatbuffersWraperBalancer {
