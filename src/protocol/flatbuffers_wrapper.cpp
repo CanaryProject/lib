@@ -110,7 +110,7 @@ namespace CanaryLib {
   }
 
   uint32_t FlatbuffersWrapper::getChecksum(const uint8_t* data, size_t length) {
-    if (length > NETWORKMESSAGE_MAXSIZE) {
+    if (length > WRAPPER_MAX_BODY_SIZE) {
       return 0;
     }
 
