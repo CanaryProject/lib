@@ -143,7 +143,7 @@ TEST_SUITE("NetworkMessage") {
     uint32_t checksum = CanaryLib::FlatbuffersWrapper::getChecksum(body_buffer, size);
 
     auto body = fbb.CreateVector(body_buffer, size);
-    auto header = CanaryLib::CreateHeader(fbb, checksum, size, size, false);
+    auto header = CanaryLib::CreateHeader(fbb, checksum, size, false);
     fbb.Finish(header);
 
     auto encrypted_message = CanaryLib::CreateEncryptedMessage(fbb, header, body);
@@ -153,7 +153,6 @@ TEST_SUITE("NetworkMessage") {
     auto enc_msg = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
 
     // auto final = CanaryLib::GetEncryptedMessage(fbb.GetBufferPointer());
-    CHECK_EQ(enc_msg->header()->encrypted_size(), size);
     CHECK_EQ(enc_msg->header()->message_size(), size);
     CHECK_FALSE(enc_msg->header()->encrypted());
 

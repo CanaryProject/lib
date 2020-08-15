@@ -2,7 +2,6 @@ namespace CanaryLib;
 
 table Header {
   checksum:uint32 = 0;
-  encrypted_size:uint16 = 0;
   message_size:uint16 = 0;
   encrypted:bool = true;
 }
