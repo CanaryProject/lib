@@ -145,7 +145,7 @@ namespace CanaryLib {
       };
       
       bool canWrite(const uint32_t size) const {
-        return (size + m_info.m_bufferPos) < MAX_BODY_LENGTH;
+        return (size + m_info.m_bufferPos) < NETWORKMESSAGE_MAXSIZE;
       };
   };
 }

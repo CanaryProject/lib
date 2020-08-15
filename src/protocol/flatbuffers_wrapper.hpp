@@ -30,8 +30,8 @@
 
 namespace CanaryLib {
   static constexpr int32_t WRAPPER_HEADER_SIZE = 2;
-  static constexpr int32_t WRAPPER_MAX_BODY_SIZE = 2000000;
-  static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = WRAPPER_MAX_BODY_SIZE - NETWORKMESSAGE_MAXSIZE;
+  static constexpr int32_t WRAPPER_MAX_BODY_SIZE = (1 << 16) - 1;
+  static constexpr int32_t WRAPPER_MAX_SIZE_TO_CONCAT = NETWORKMESSAGE_MAXSIZE;
 
   class FlatbuffersWrapper : public std::enable_shared_from_this<FlatbuffersWrapper> {
     public:
@@ -84,17 +84,11 @@ namespace CanaryLib {
         return contents;
       }
 
-      void addRawMessage(NetworkMessage& _msg) {
+      void addRawMessage(NetworkMessage& msg) {
         if (isWriteLocked()) return;
-        NetworkMessage msg;
-        msg.write(_msg.getBuffer(), _msg.getLength());
-
         auto buffer = fbb.CreateVector(msg.getBuffer(), msg.getLength());
         auto raw_data = CanaryLib::CreateRawData(fbb, buffer, msg.getLength());
-        fbb.Finish(raw_data);
         add(raw_data.Union(), CanaryLib::DataType_RawData);
-
-        msgQueue.emplace_back(msg);
       }
 
       bool add(flatbuffers::Offset<void> data, DataType type);
@@ -116,8 +110,6 @@ namespace CanaryLib {
       std::vector<flatbuffers::Offset<void>> contents;
 
       flatbuffers::FlatBufferBuilder fbb;
-
-      std::list<NetworkMessage> msgQueue;
 
       bool enableXteaEncryption = true;
       bool lockBuffersWrite = false;

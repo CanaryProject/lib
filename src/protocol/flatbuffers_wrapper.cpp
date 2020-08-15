@@ -30,8 +30,9 @@ namespace CanaryLib {
       auto content_msg = CreateContentMessage(fbb, types_vec, contents_vec);
       fbb.Finish(content_msg);
 
-      uint16_t content_size = fbb.GetSize();
-      uint8_t *content_buffer = fbb.GetBufferPointer();
+      auto releasedMsg = fbb.Release();
+      uint8_t *content_buffer = releasedMsg.data();
+      uint16_t content_size = releasedMsg.size();
 
       bool encrypted = false;
       // encrypt (if requested) + checksum
@@ -42,12 +43,10 @@ namespace CanaryLib {
       uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
       auto content = fbb.CreateVector(content_buffer, content_size);
       auto header = CreateHeader(fbb, checksum, content_size, content_size, encrypted);
-      fbb.Finish(header);
 
       auto enc_message = CreateEncryptedMessage(fbb, header, content);
       fbb.Finish(enc_message);  
 
-      spdlog::critical("encode {} {}", readChecksum(), FlatbuffersWrapper::getChecksum(content_buffer, content_size));
       w_size = fbb.GetSize();
       memcpy(w_buffer, &w_size, WRAPPER_HEADER_SIZE);
       memcpy(w_buffer + WRAPPER_HEADER_SIZE, fbb.GetBufferPointer(), w_size);
@@ -59,7 +58,6 @@ namespace CanaryLib {
     w_size = 0;
     types.clear();
     contents.clear();
-    msgQueue.clear();
 
     enableXteaEncryption = true;
     lockBuffersWrite = false;
@@ -105,7 +103,6 @@ namespace CanaryLib {
 
   bool FlatbuffersWrapper::readChecksum() {
     if (!isWriteLocked()) return true;
-    spdlog::critical("{} {}", getEncryptedMessage()->header()->checksum(), FlatbuffersWrapper::getChecksum(getEncryptedMessage()->body()->data(), getEncryptedMessage()->header()->message_size()));
     return getEncryptedMessage()->header()->checksum() == FlatbuffersWrapper::getChecksum(getEncryptedMessage()->body()->data(), getEncryptedMessage()->header()->message_size());
   }
 

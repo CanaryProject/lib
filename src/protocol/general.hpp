@@ -26,25 +26,9 @@ namespace CanaryLib {
   /*****************************
   ********* Consts
   *****************************/
-  static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 65536;
-  static constexpr int32_t MAX_STRING_LENGTH = 65536;
+  static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 60000;
   
   using MsgSize_t = uint16_t;
-
-  // Headers:
-  // 2 bytes for unencrypted message size
-  // 4 bytes for checksum
-  // 2 bytes for encrypted message size
-  static constexpr uint8_t CHECKSUM_LENGTH = 4;
-  static constexpr uint8_t HEADER_LENGTH = 2;
-  static constexpr uint8_t XTEA_MULTIPLE = 8;
-
-  static constexpr uint8_t NON_BODY_LENGTH =
-    HEADER_LENGTH + CHECKSUM_LENGTH + XTEA_MULTIPLE;
-  static constexpr uint32_t MAX_BODY_LENGTH = 
-    NETWORKMESSAGE_MAXSIZE - NON_BODY_LENGTH;
-  static constexpr uint32_t MAX_PROTOCOL_BODY_LENGTH = 
-    MAX_BODY_LENGTH - XTEA_MULTIPLE;
 
 /*****************************
 ********* Enums

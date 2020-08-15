@@ -8,6 +8,34 @@ TEST_SUITE("FlatbuffersWrapper") {
   uint16_t id16 = 65000;
   uint8_t dmg = 123;
 
+  TEST_CASE("Load test, should work fine with up to 2^16 bytes msg and wrappers") {
+    CanaryLib::FlatbuffersWrapper wrapper1;
+    CanaryLib::FlatbuffersWrapper wrapper2;
+    flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
+
+    for (int i = 0; i < 10; i++) {
+      CanaryLib::NetworkMessage msg;
+      for (int j = 0; j < 100; j++) {
+        msg.write<uint8_t>(12);
+        msg.write<uint16_t>(12);
+        msg.write<uint32_t>(12);
+      }
+      auto buffer = fbb.CreateVector(msg.getBuffer(), msg.getLength());
+      auto raw_data = CanaryLib::CreateRawData(fbb, buffer, msg.getLength());
+      wrapper1.add(raw_data.Union(), CanaryLib::DataType_RawData);
+      spdlog::critical("SIZE PORRA {}", fbb.GetSize());
+    }
+    wrapper2.copy(wrapper1.Finish());
+    spdlog::critical("SIZE PORRA {} {}", wrapper2.Size(), fbb.GetSize());
+    CHECK(wrapper1.readChecksum());
+    CHECK_EQ(wrapper2.Size(), wrapper1.Size());
+    
+    auto cs1 =  CanaryLib::FlatbuffersWrapper::getChecksum(wrapper1.getEncryptedMessage()->body()->data(), wrapper1.getEncryptedMessage()->header()->message_size());
+    auto cs2 =  CanaryLib::FlatbuffersWrapper::getChecksum(wrapper2.getEncryptedMessage()->body()->data(), wrapper2.getEncryptedMessage()->header()->message_size());
+    CHECK_EQ(cs1, cs2);
+    CHECK(wrapper2.readChecksum());
+  }
+
   void generateBaseWrapper(CanaryLib::FlatbuffersWrapper &wrapper1) {
     xtea.generateKey();
     flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
