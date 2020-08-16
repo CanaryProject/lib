@@ -1,0 +1,9 @@
+
+
+namespace CanaryLib;
+
+table RawData {
+  body:[ubyte];
+  size:uint16 = 0;
+}
+root_type RawData;

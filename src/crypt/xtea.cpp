@@ -362,6 +362,7 @@ namespace CanaryLib {
     key[2] = unif(eng);
     key[3] = unif(eng);
 
+    enabled = true;
     return key;
   }
 }

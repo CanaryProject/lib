@@ -43,7 +43,12 @@ namespace CanaryLib {
       }
       void setKey(const uint32_t* k) {
 			  memcpy(key, k, sizeof(*k) * 4);
+        enabled = true;
       };
+
+      bool isEnabled() {
+        return enabled;
+      }
 
       void decrypt(uint16_t length, uint8_t* buffer) const;
       void encrypt(uint16_t length, uint8_t* buffer) const;
@@ -51,6 +56,7 @@ namespace CanaryLib {
 
     private:
 		  uint32_t key[4] = {};
+      bool enabled = false;
   };  
 }
 

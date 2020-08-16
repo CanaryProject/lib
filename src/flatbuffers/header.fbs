@@ -1,15 +1,9 @@
 namespace CanaryLib;
 
-enum ContentFormat:byte { 
-  RawMessage = 0,
-  Flatbuffers = 1,
-}
-
 table Header {
   checksum:uint32 = 0;
-  encrypted_size:uint16 = 0;
   message_size:uint16 = 0;
-  format:ContentFormat = RawMessage;
+  encrypted:bool = true;
 }
 
 root_type Header;
