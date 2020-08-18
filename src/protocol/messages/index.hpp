@@ -22,6 +22,7 @@
 
 #include "content_message_generated.h"
 #include "encrypted_message_generated.h"
+#include "error_data_generated.h"
 #include "header_generated.h"
 #include "player_data_generated.h"
 #include "raw_data_generated.h"

@@ -17,7 +17,8 @@ namespace FlatbuffersWrapperLoadTest {
 
     void loadTestNoFlatbuffer(int nMessages, int msgSize) {
       int msgLength = msgSize * 15;
-      CanaryLib::NetworkMessage bigMsg;
+      std::vector<CanaryLib::NetworkMessage> msgArray{};
+      
       for (int i = 0; i < nMessages; i++) {
         CanaryLib::NetworkMessage msg;
         for (int j = 0; j < msgSize; j++) {
@@ -26,12 +27,13 @@ namespace FlatbuffersWrapperLoadTest {
           msg.write<uint16_t>(id16);
           msg.write<uint32_t>(id32);
         }
-        bigMsg.write(msg.getBuffer(), msg.getLength());
+        msgArray.emplace_back(msg);
       }
 
       for (int i = 0; i < nMessages; i++) {
+        CanaryLib::NetworkMessage msg = msgArray[i];
         CanaryLib::NetworkMessage output;
-        output.write(bigMsg.getBuffer() + (i * msgLength), msgLength, CanaryLib::MESSAGE_OPERATION_PEEK);
+        output.write(msg.getBuffer(), msg.getLength(), CanaryLib::MESSAGE_OPERATION_PEEK);
         for (int j = 0; j < msgSize; j++) {
           CHECK_EQ(output.readString(), nameStr);
           CHECK_EQ(output.read<uint8_t>(), dmg);
@@ -150,7 +152,7 @@ namespace FlatbuffersWrapperLoadTest {
     }
 
     TEST_CASE("Load test, multiple small NetworkMessages") {
-      loadExecution(CanaryLib::DataType_NONE, 3800);
+      loadExecution(CanaryLib::DataType_NONE, 1740);
     }
 
     TEST_CASE("Load test, one big NetworkMessages") {

@@ -1,0 +1,8 @@
+
+
+namespace CanaryLib;
+
+table ErrorData {
+  message:string;
+}
+root_type ErrorData;

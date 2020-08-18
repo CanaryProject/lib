@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "error_data_generated.h"
 #include "player_data_generated.h"
 #include "raw_data_generated.h"
 #include "weapon_data_generated.h"
@@ -17,16 +18,18 @@ struct ContentMessageBuilder;
 
 enum DataType {
   DataType_NONE = 0,
-  DataType_RawData = 1,
-  DataType_PlayerData = 2,
-  DataType_WeaponData = 3,
+  DataType_ErrorData = 1,
+  DataType_RawData = 2,
+  DataType_PlayerData = 3,
+  DataType_WeaponData = 4,
   DataType_MIN = DataType_NONE,
   DataType_MAX = DataType_WeaponData
 };
 
-inline const DataType (&EnumValuesDataType())[4] {
+inline const DataType (&EnumValuesDataType())[5] {
   static const DataType values[] = {
     DataType_NONE,
+    DataType_ErrorData,
     DataType_RawData,
     DataType_PlayerData,
     DataType_WeaponData
@@ -35,8 +38,9 @@ inline const DataType (&EnumValuesDataType())[4] {
 }
 
 inline const char * const *EnumNamesDataType() {
-  static const char * const names[5] = {
+  static const char * const names[6] = {
     "NONE",
+    "ErrorData",
     "RawData",
     "PlayerData",
     "WeaponData",
@@ -53,6 +57,10 @@ inline const char *EnumNameDataType(DataType e) {
 
 template<typename T> struct DataTypeTraits {
   static const DataType enum_value = DataType_NONE;
+};
+
+template<> struct DataTypeTraits<CanaryLib::ErrorData> {
+  static const DataType enum_value = DataType_ErrorData;
 };
 
 template<> struct DataTypeTraits<CanaryLib::RawData> {
@@ -140,6 +148,10 @@ inline bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, Dat
   switch (type) {
     case DataType_NONE: {
       return true;
+    }
+    case DataType_ErrorData: {
+      auto ptr = reinterpret_cast<const CanaryLib::ErrorData *>(obj);
+      return verifier.VerifyTable(ptr);
     }
     case DataType_RawData: {
       auto ptr = reinterpret_cast<const CanaryLib::RawData *>(obj);
