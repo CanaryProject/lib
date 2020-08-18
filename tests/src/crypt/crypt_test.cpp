@@ -1,4 +1,4 @@
-#include "../all.h"
+#include "../../all.h"
 
 TEST_SUITE("Crypt Test") {
   TEST_CASE("XTEA encrypt/decrypt") {

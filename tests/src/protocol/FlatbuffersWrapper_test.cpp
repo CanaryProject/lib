@@ -1,4 +1,4 @@
-#include "../all.h"
+#include "../../all.h"
 
 namespace FlatbuffersWrapperTest {
   TEST_SUITE("FlatbuffersWrapper") {

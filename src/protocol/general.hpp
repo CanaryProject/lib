@@ -47,7 +47,6 @@ namespace CanaryLib {
   };
 
 	enum LoginServerOpts {
-    LoginServerErrorNew = 0xB,
 		LoginServerMotd = 0x14,
     LoginServerSessionKey = 0x28,
 		LoginServerCharacterList = 0x64

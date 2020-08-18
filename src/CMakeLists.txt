@@ -27,6 +27,7 @@ option(OPTIONS_ENABLE_CTAGS "Enable automatic tags generation with ctags" OFF)
 option(OPTIONS_ENABLE_DEBUG_LOG "Enable debug log" OFF)
 option(OPTIONS_ENABLE_OPENMP "Enable Open Multi-Processing support." ON)
 option(OPTIONS_ENABLE_UNIT_TEST "Enable Unit-Test Build" OFF)
+option(OPTIONS_ENABLE_BENCHMARKING "Enable Benchmark Build" OFF)
 option(OPTIONS_WARNINGS_FLAGS "Enable the warning flags" OFF)
 option(OPTIONS_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 

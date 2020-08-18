@@ -1,4 +1,4 @@
-#include "../all.h"
+#include "../../all.h"
 
 template<class T>
 void validateMessage(T value) {
