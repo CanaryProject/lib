@@ -1,7 +1,7 @@
 namespace CanaryLib;
 
 table AccountInfo {
-  free_premium:uint8 = 0;
+  free_premium:bool = false;
   premium_days:uint16 = 0;
   session_key:string;
 }

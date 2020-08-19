@@ -27,8 +27,8 @@ struct AccountInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_PREMIUM_DAYS = 6,
     VT_SESSION_KEY = 8
   };
-  uint8_t free_premium() const {
-    return GetField<uint8_t>(VT_FREE_PREMIUM, 0);
+  bool free_premium() const {
+    return GetField<uint8_t>(VT_FREE_PREMIUM, 0) != 0;
   }
   uint16_t premium_days() const {
     return GetField<uint16_t>(VT_PREMIUM_DAYS, 0);
@@ -50,8 +50,8 @@ struct AccountInfoBuilder {
   typedef AccountInfo Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_free_premium(uint8_t free_premium) {
-    fbb_.AddElement<uint8_t>(AccountInfo::VT_FREE_PREMIUM, free_premium, 0);
+  void add_free_premium(bool free_premium) {
+    fbb_.AddElement<uint8_t>(AccountInfo::VT_FREE_PREMIUM, static_cast<uint8_t>(free_premium), 0);
   }
   void add_premium_days(uint16_t premium_days) {
     fbb_.AddElement<uint16_t>(AccountInfo::VT_PREMIUM_DAYS, premium_days, 0);
@@ -72,7 +72,7 @@ struct AccountInfoBuilder {
 
 inline flatbuffers::Offset<AccountInfo> CreateAccountInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
-    uint8_t free_premium = 0,
+    bool free_premium = false,
     uint16_t premium_days = 0,
     flatbuffers::Offset<flatbuffers::String> session_key = 0) {
   AccountInfoBuilder builder_(_fbb);
@@ -84,7 +84,7 @@ inline flatbuffers::Offset<AccountInfo> CreateAccountInfo(
 
 inline flatbuffers::Offset<AccountInfo> CreateAccountInfoDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    uint8_t free_premium = 0,
+    bool free_premium = false,
     uint16_t premium_days = 0,
     const char *session_key = nullptr) {
   auto session_key__ = session_key ? _fbb.CreateString(session_key) : 0;
