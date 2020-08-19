@@ -1,3 +1,4 @@
+include "characters_list_data.fbs";
 include "error_data.fbs";
 include "player_data.fbs";
 include "raw_data.fbs";
@@ -6,6 +7,7 @@ include "weapon_data.fbs";
 namespace CanaryLib;
 
 union DataType { 
+  CharactersListData,
   ErrorData,
   RawData,
   PlayerData,

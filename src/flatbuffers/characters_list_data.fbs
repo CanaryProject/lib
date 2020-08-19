@@ -1,0 +1,27 @@
+namespace CanaryLib;
+
+table AccountInfo {
+  free_premium:uint8 = 0;
+  premium_days:uint16 = 0;
+  session_key:string;
+}
+
+table CharacterInfo {
+  name:string;
+  world_id:uint8 = 0;
+}
+
+table WorldInfo {
+  id:uint8 = 0;
+  name:string;
+  ip:string;
+  port:uint16;
+}
+
+table CharactersListData {
+  account:AccountInfo;
+  characters:[CharacterInfo];
+  world:WorldInfo;
+  motd:string;
+}
+root_type CharactersListData;

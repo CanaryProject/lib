@@ -20,6 +20,7 @@
 #ifndef CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
 #define CANARY_LIB_PROTOCOL_MESSAGES_INDEX_HPP
 
+#include "characters_list_data_generated.h"
 #include "content_message_generated.h"
 #include "encrypted_message_generated.h"
 #include "error_data_generated.h"
