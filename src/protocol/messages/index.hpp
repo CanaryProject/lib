@@ -25,6 +25,8 @@
 #include "encrypted_message_generated.h"
 #include "error_data_generated.h"
 #include "header_generated.h"
+#include "login_data_generated.h"
+#include "login_data_info_generated.h"
 #include "player_data_generated.h"
 #include "raw_data_generated.h"
 #include "weapon_data_generated.h"

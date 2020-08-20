@@ -1,0 +1,6 @@
+namespace CanaryLib;
+
+table LoginData {
+  body:[ubyte];
+}
+root_type LoginData;
