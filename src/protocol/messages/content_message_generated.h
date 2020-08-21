@@ -9,9 +9,7 @@
 #include "characters_list_data_generated.h"
 #include "error_data_generated.h"
 #include "login_data_generated.h"
-#include "player_data_generated.h"
 #include "raw_data_generated.h"
-#include "weapon_data_generated.h"
 
 namespace CanaryLib {
 
@@ -24,41 +22,35 @@ enum DataType {
   DataType_ErrorData = 2,
   DataType_LoginData = 3,
   DataType_RawData = 4,
-  DataType_PlayerData = 5,
-  DataType_WeaponData = 6,
   DataType_MIN = DataType_NONE,
-  DataType_MAX = DataType_WeaponData
+  DataType_MAX = DataType_RawData
 };
 
-inline const DataType (&EnumValuesDataType())[7] {
+inline const DataType (&EnumValuesDataType())[5] {
   static const DataType values[] = {
     DataType_NONE,
     DataType_CharactersListData,
     DataType_ErrorData,
     DataType_LoginData,
-    DataType_RawData,
-    DataType_PlayerData,
-    DataType_WeaponData
+    DataType_RawData
   };
   return values;
 }
 
 inline const char * const *EnumNamesDataType() {
-  static const char * const names[8] = {
+  static const char * const names[6] = {
     "NONE",
     "CharactersListData",
     "ErrorData",
     "LoginData",
     "RawData",
-    "PlayerData",
-    "WeaponData",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameDataType(DataType e) {
-  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_WeaponData)) return "";
+  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_RawData)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesDataType()[index];
 }
@@ -81,14 +73,6 @@ template<> struct DataTypeTraits<CanaryLib::LoginData> {
 
 template<> struct DataTypeTraits<CanaryLib::RawData> {
   static const DataType enum_value = DataType_RawData;
-};
-
-template<> struct DataTypeTraits<CanaryLib::PlayerData> {
-  static const DataType enum_value = DataType_PlayerData;
-};
-
-template<> struct DataTypeTraits<CanaryLib::WeaponData> {
-  static const DataType enum_value = DataType_WeaponData;
 };
 
 bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, DataType type);
@@ -179,14 +163,6 @@ inline bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, Dat
     }
     case DataType_RawData: {
       auto ptr = reinterpret_cast<const CanaryLib::RawData *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case DataType_PlayerData: {
-      auto ptr = reinterpret_cast<const CanaryLib::PlayerData *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case DataType_WeaponData: {
-      auto ptr = reinterpret_cast<const CanaryLib::WeaponData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

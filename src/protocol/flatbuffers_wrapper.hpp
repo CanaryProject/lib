@@ -143,34 +143,4 @@ namespace CanaryLib {
   };
 }
 
-/*
-
-      void parsePlayerData (const void* msg) {
-        auto value = reinterpret_cast<const CanaryLib::PlayerData *>(msg);
-        // do something
-      }
-
-      void parseWeaponData (const void* msg) {
-        auto value = reinterpret_cast<const CanaryLib::WeaponData *>(msg);
-        // do something
-      }
-
-      void parseRawData (const void* msg) {
-        auto value = reinterpret_cast<const CanaryLib::RawData *>(msg);
-        // do something
-      }
-
-      void parseDataError (const void* msg) {
-        spdlog::critical("Error");
-      }
-
-      std::map<CanaryLib::DataType, std::function<void (const void*)>> parseMap = {
-        {CanaryLib::DataType_PlayerData, parsePlayerData},
-        {CanaryLib::DataType_RawData, parseRawData},
-        {CanaryLib::DataType_WeaponData, parseWeaponData},
-        {CanaryLib::DataType_NONE, parseDataError}
-      };
-
-*/
-
 #endif

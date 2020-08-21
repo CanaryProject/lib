@@ -14,14 +14,8 @@ namespace FlatbuffersWrapperTest {
       flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
 
       auto name = fbb.CreateString(nameStr);
-      auto player_data = CanaryLib::CreatePlayerData(fbb, id32, name);
-      fbb.Finish(player_data);
-      wrapper1.add(player_data.Union(), CanaryLib::DataType_PlayerData);
-
-      auto name2 = fbb.CreateString(nameStr);
-      auto weapon_data = CanaryLib::CreateWeaponData(fbb, id16, name2, dmg);
-      fbb.Finish(weapon_data);
-      wrapper1.add(weapon_data.Union(), CanaryLib::DataType_WeaponData);
+      auto error_data = CanaryLib::CreateErrorData(fbb, name);
+      wrapper1.add(error_data.Union(), CanaryLib::DataType_ErrorData);
 
       auto buffer = fbb.CreateVector((uint8_t *) rawStr.c_str(), rawStr.size());
       auto raw_data = CanaryLib::CreateRawData(fbb, buffer, rawStr.size());
@@ -45,20 +39,13 @@ namespace FlatbuffersWrapperTest {
       CHECK_EQ(enc_msg->header()->encrypted(), !!_xtea);
       CHECK_EQ(content_msg->data()->size(), 3);
 
-      CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(0), CanaryLib::DataType_PlayerData);
-      CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(1), CanaryLib::DataType_WeaponData);
-      CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(2), CanaryLib::DataType_RawData);
+      CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(0), CanaryLib::DataType_ErrorData);
+      CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(1), CanaryLib::DataType_RawData);
 
-      auto player = content_msg->data()->GetAs<CanaryLib::PlayerData>(0);
-      CHECK_EQ(player->name()->str(), nameStr);
-      CHECK_EQ(player->id(), id32);
+      auto error = content_msg->data()->GetAs<CanaryLib::ErrorData>(0);
+      CHECK_EQ(error->message()->str(), nameStr);
 
-      auto weapon = content_msg->data()->GetAs<CanaryLib::WeaponData>(1);
-      CHECK_EQ(weapon->name()->str(), nameStr);
-      CHECK_EQ(weapon->id(), id16);
-      CHECK_EQ(weapon->damage(), dmg);
-
-      auto raw = content_msg->data()->GetAs<CanaryLib::RawData>(2);
+      auto raw = content_msg->data()->GetAs<CanaryLib::RawData>(1);
       
       CHECK_EQ(std::string((char *) raw->body()->data()), rawStr);
       CHECK_EQ(raw->size(), rawStr.size());

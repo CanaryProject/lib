@@ -1,7 +1,0 @@
-namespace CanaryLib;
-
-table PlayerData {
-  id:uint32;
-  name:string;
-}
-root_type PlayerData;

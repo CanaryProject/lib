@@ -90,9 +90,9 @@ namespace FlatbuffersWrapperLoadTest {
       flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder();
 
       for (int i = 0; i < nMessages; i++) {
-        auto name2 = fbb.CreateString(nameStr);
-        auto weapon_data = CanaryLib::CreateWeaponData(fbb, id16, name2, dmg);
-        wrapper1.add(weapon_data.Union(), CanaryLib::DataType_WeaponData);
+        auto name = fbb.CreateString(nameStr);
+        auto error_data = CanaryLib::CreateErrorData(fbb, name);
+        wrapper1.add(error_data.Union(), CanaryLib::DataType_ErrorData);
       }
       wrapper1.Finish();
       
@@ -105,11 +105,9 @@ namespace FlatbuffersWrapperLoadTest {
       uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
       auto content_msg = CanaryLib::GetContentMessage(body_buffer);
       for (int i = 0; i < nMessages; i++) {
-        CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(i), CanaryLib::DataType_WeaponData);
-        auto weapon = content_msg->data()->GetAs<CanaryLib::WeaponData>(1);
-        CHECK_EQ(weapon->name()->str(), nameStr);
-        CHECK_EQ(weapon->id(), id16);
-        CHECK_EQ(weapon->damage(), dmg);
+        CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(i), CanaryLib::DataType_ErrorData);
+        auto error = content_msg->data()->GetAs<CanaryLib::ErrorData>(1);
+        CHECK_EQ(error->message()->str(), nameStr);
       }
     }
 
@@ -127,7 +125,7 @@ namespace FlatbuffersWrapperLoadTest {
               loadTestRawDataMessage(messages, msgSize); 
           });
           return;
-        case CanaryLib::DataType_WeaponData:
+        case CanaryLib::DataType_ErrorData:
           measureExecution(name, [=]() { 
             for (int i = 0; i < executions; i++)
               loadTestWeaponMessage(messages); 
@@ -159,8 +157,8 @@ namespace FlatbuffersWrapperLoadTest {
       loadExecution(CanaryLib::DataType_NONE, 1, 3800);
     }
 
-    TEST_CASE("Load test, multiple weapon data") {
-      loadExecution(CanaryLib::DataType_WeaponData, 2250);
+    TEST_CASE("Load test, multiple error data") {
+      loadExecution(CanaryLib::DataType_ErrorData, 2250);
     }
   }
 }
