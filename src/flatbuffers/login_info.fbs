@@ -1,11 +1,9 @@
 namespace CanaryLib;
 
-table LoginDataInfo {
+table LoginInfo {
   account:string;
   auth_token:string;
   password:string;
-  stay_logged:bool;
   xtea_key:[uint32];
-  padding:[ubyte];
 }
-root_type LoginDataInfo;
+root_type LoginInfo;
