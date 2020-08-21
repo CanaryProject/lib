@@ -17,15 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CANARY_LIB_PROTOCOL_INDEX_H
-#define CANARY_LIB_PROTOCOL_INDEX_H
-
-#include "flatbuffers_parser.hpp"
-#include "flatbuffers_wrapper.hpp"
-#include "general.hpp"
-#include "network_message.hpp"
+#ifndef CANARY_LIB_PROTOCOL_FLATBUFFERS_PROTOCOL_H
+#define CANARY_LIB_PROTOCOL_FLATBUFFERS_PROTOCOL_H
 
 #include "messages/index.hpp"
-#include "opcodes/index.hpp"
+#include "general.hpp"
+
+namespace CanaryLib {
+  class FlatbuffersParser : public std::enable_shared_from_this<FlatbuffersParser> {
+    public:
+      FlatbuffersParser();
+      void parseContentMessage(const CanaryLib::ContentMessage *content_msg);
+
+    protected:
+      virtual void parseCharacterList(const CanaryLib::CharactersListData *character_list){};
+      virtual void parseError(const CanaryLib::ErrorData *error){};
+      virtual void parseLogin(const CanaryLib::LoginData *login){};
+      virtual void parseRawData(const CanaryLib::RawData *raw_data){};
+  };
+}
 
 #endif

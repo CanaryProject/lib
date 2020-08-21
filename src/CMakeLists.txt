@@ -167,6 +167,7 @@ endif()
 # *****************************************************************************
 target_sources(canary_lib
   PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/protocol/flatbuffers_parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/protocol/flatbuffers_wrapper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/protocol/network_message.cpp
     ${CMAKE_CURRENT_LIST_DIR}/crypt/xtea.cpp
