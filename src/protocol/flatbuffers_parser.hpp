@@ -20,20 +20,23 @@
 #ifndef CANARY_LIB_PROTOCOL_FLATBUFFERS_PROTOCOL_H
 #define CANARY_LIB_PROTOCOL_FLATBUFFERS_PROTOCOL_H
 
-#include "messages/index.hpp"
+#include "../crypt/xtea.hpp"
+
 #include "general.hpp"
+#include "messages/index.hpp"
 
 namespace CanaryLib {
-  class FlatbuffersParser : public std::enable_shared_from_this<FlatbuffersParser> {
+  class FlatbuffersParser {
     public:
-      FlatbuffersParser();
-      void parseContentMessage(const CanaryLib::ContentMessage *content_msg);
+      FlatbuffersParser(){};
+      void parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg, XTEA *xtea);
+      void parseContentMessage(const ContentMessage *content_msg);
 
     protected:
-      virtual void parseCharacterList(const CanaryLib::CharactersListData *character_list){};
-      virtual void parseError(const CanaryLib::ErrorData *error){};
-      virtual void parseLogin(const CanaryLib::LoginData *login){};
-      virtual void parseRawData(const CanaryLib::RawData *raw_data){};
+      virtual void parseCharacterList(const CharactersListData *character_list){};
+      virtual void parseError(const ErrorData *error){};
+      virtual void parseLogin(const LoginData *login){};
+      virtual void parseRawData(const RawData *raw_data){};
   };
 }
 

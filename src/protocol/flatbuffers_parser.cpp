@@ -21,30 +21,41 @@
 #include "flatbuffers_parser.hpp"
 
 namespace CanaryLib {
+  void FlatbuffersParser::parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg, XTEA *xtea) {
+    auto header = enc_msg->header();
+    uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
+    
+    // if non-encrypted then its first message
+    if (xtea && xtea->isEnabled() && header->encrypted()) {
+      xtea->decrypt(enc_msg->header()->message_size(), body_buffer);
+    }
+
+    parseContentMessage(CanaryLib::GetContentMessage(body_buffer));
+  }
   /**
    * Controls the content message routing.
    * It will identify the type and call the proper parser method.
   */
-  void FlatbuffersParser::parseContentMessage(const CanaryLib::ContentMessage *content_msg) {
+  void FlatbuffersParser::parseContentMessage(const ContentMessage *content_msg) {
     for (int i = 0; i < content_msg->data()->size(); i++) {
-      switch (auto dataType = content_msg->data_type()->GetEnum<CanaryLib::DataType>(i)) {
-        case CanaryLib::DataType_CharactersListData:
-          parseCharacterList(content_msg->data()->GetAs<CanaryLib::CharactersListData>(i));
+      switch (auto dataType = content_msg->data_type()->GetEnum<DataType>(i)) {
+        case DataType_CharactersListData:
+          parseCharacterList(content_msg->data()->GetAs<CharactersListData>(i));
           break;
 
-        case CanaryLib::DataType_ErrorData:
-          parseError(content_msg->data()->GetAs<CanaryLib::ErrorData>(i));
+        case DataType_ErrorData:
+          parseError(content_msg->data()->GetAs<ErrorData>(i));
           break;
 
-        case CanaryLib::DataType_LoginData:
-          parseLogin(content_msg->data()->GetAs<CanaryLib::LoginData>(i));
+        case DataType_LoginData:
+          parseLogin(content_msg->data()->GetAs<LoginData>(i));
           break;
 
-        case CanaryLib::DataType_RawData:
-          parseRawData(content_msg->data()->GetAs<CanaryLib::RawData>(i));
+        case DataType_RawData:
+          parseRawData(content_msg->data()->GetAs<RawData>(i));
           break;
         
-        case CanaryLib::DataType_NONE:
+        case DataType_NONE:
         default:
           spdlog::warn("[Protocol::parseContentMessage] Invalid {} content message data type was skipped.", dataType);
           break;
