@@ -27,6 +27,7 @@ namespace CanaryLib {
   ********* Consts
   *****************************/
   static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 60000;
+  static constexpr uint8_t RSA_SIZE = 128;
   
   using MsgSize_t = uint16_t;
 
@@ -46,10 +47,10 @@ namespace CanaryLib {
     CHECKSUM_METHOD_SEQUENCE
   };
 
-	enum LoginServerOpts {
-		LoginServerMotd = 0x14,
-    LoginServerSessionKey = 0x28,
-		LoginServerCharacterList = 0x64
+	enum Protocol_t : uint8_t {
+    PROTOCOL_LOGIN = 0x01,
+    PROTOCOL_GAME = 0x0A,
+    PROTOCOL_STATUS = 0xFF
 	};
 }
 
