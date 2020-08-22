@@ -1,9 +1,20 @@
 namespace CanaryLib;
 
+table Challenge {
+  timestamp:uint32;
+  random:uint8;
+}
+
+table GameLoginInfo {
+  char_name:string;
+  challenge:Challenge;
+}
+
 table LoginInfo {
   account:string;
   auth_token:string;
   password:string;
   xtea_key:[uint32];
+  game_login_info:GameLoginInfo;
 }
 root_type LoginInfo;

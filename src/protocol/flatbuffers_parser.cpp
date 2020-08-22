@@ -32,6 +32,7 @@ namespace CanaryLib {
 
     parseContentMessage(CanaryLib::GetContentMessage(body_buffer));
   }
+  
   /**
    * Controls the content message routing.
    * It will identify the type and call the proper parser method.

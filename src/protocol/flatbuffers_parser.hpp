@@ -29,6 +29,7 @@ namespace CanaryLib {
   class FlatbuffersParser {
     public:
       FlatbuffersParser(){};
+
       void parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg, XTEA *xtea);
       void parseContentMessage(const ContentMessage *content_msg);
 
