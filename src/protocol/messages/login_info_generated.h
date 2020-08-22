@@ -17,6 +17,29 @@ struct GameLoginInfoBuilder;
 struct LoginInfo;
 struct LoginInfoBuilder;
 
+enum Client_t {
+  Client_t_UNKNOWN = 0,
+  Client_t_CANARY = 19,
+  Client_t_MIN = Client_t_UNKNOWN,
+  Client_t_MAX = Client_t_CANARY
+};
+
+inline const Client_t (&EnumValuesClient_t())[2] {
+  static const Client_t values[] = {
+    Client_t_UNKNOWN,
+    Client_t_CANARY
+  };
+  return values;
+}
+
+inline const char *EnumNameClient_t(Client_t e) {
+  switch (e) {
+    case Client_t_UNKNOWN: return "UNKNOWN";
+    case Client_t_CANARY: return "CANARY";
+    default: return "";
+  }
+}
+
 struct Challenge FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ChallengeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -153,7 +176,8 @@ struct LoginInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_AUTH_TOKEN = 6,
     VT_PASSWORD = 8,
     VT_XTEA_KEY = 10,
-    VT_GAME_LOGIN_INFO = 12
+    VT_GAME_LOGIN_INFO = 12,
+    VT_CLIENT = 14
   };
   const flatbuffers::String *account() const {
     return GetPointer<const flatbuffers::String *>(VT_ACCOUNT);
@@ -170,6 +194,9 @@ struct LoginInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const CanaryLib::GameLoginInfo *game_login_info() const {
     return GetPointer<const CanaryLib::GameLoginInfo *>(VT_GAME_LOGIN_INFO);
   }
+  CanaryLib::Client_t client() const {
+    return static_cast<CanaryLib::Client_t>(GetField<uint8_t>(VT_CLIENT, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ACCOUNT) &&
@@ -182,6 +209,7 @@ struct LoginInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(xtea_key()) &&
            VerifyOffset(verifier, VT_GAME_LOGIN_INFO) &&
            verifier.VerifyTable(game_login_info()) &&
+           VerifyField<uint8_t>(verifier, VT_CLIENT) &&
            verifier.EndTable();
   }
 };
@@ -205,6 +233,9 @@ struct LoginInfoBuilder {
   void add_game_login_info(flatbuffers::Offset<CanaryLib::GameLoginInfo> game_login_info) {
     fbb_.AddOffset(LoginInfo::VT_GAME_LOGIN_INFO, game_login_info);
   }
+  void add_client(CanaryLib::Client_t client) {
+    fbb_.AddElement<uint8_t>(LoginInfo::VT_CLIENT, static_cast<uint8_t>(client), 0);
+  }
   explicit LoginInfoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -222,13 +253,15 @@ inline flatbuffers::Offset<LoginInfo> CreateLoginInfo(
     flatbuffers::Offset<flatbuffers::String> auth_token = 0,
     flatbuffers::Offset<flatbuffers::String> password = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> xtea_key = 0,
-    flatbuffers::Offset<CanaryLib::GameLoginInfo> game_login_info = 0) {
+    flatbuffers::Offset<CanaryLib::GameLoginInfo> game_login_info = 0,
+    CanaryLib::Client_t client = CanaryLib::Client_t_UNKNOWN) {
   LoginInfoBuilder builder_(_fbb);
   builder_.add_game_login_info(game_login_info);
   builder_.add_xtea_key(xtea_key);
   builder_.add_password(password);
   builder_.add_auth_token(auth_token);
   builder_.add_account(account);
+  builder_.add_client(client);
   return builder_.Finish();
 }
 
@@ -238,7 +271,8 @@ inline flatbuffers::Offset<LoginInfo> CreateLoginInfoDirect(
     const char *auth_token = nullptr,
     const char *password = nullptr,
     const std::vector<uint32_t> *xtea_key = nullptr,
-    flatbuffers::Offset<CanaryLib::GameLoginInfo> game_login_info = 0) {
+    flatbuffers::Offset<CanaryLib::GameLoginInfo> game_login_info = 0,
+    CanaryLib::Client_t client = CanaryLib::Client_t_UNKNOWN) {
   auto account__ = account ? _fbb.CreateString(account) : 0;
   auto auth_token__ = auth_token ? _fbb.CreateString(auth_token) : 0;
   auto password__ = password ? _fbb.CreateString(password) : 0;
@@ -249,7 +283,8 @@ inline flatbuffers::Offset<LoginInfo> CreateLoginInfoDirect(
       auth_token__,
       password__,
       xtea_key__,
-      game_login_info);
+      game_login_info,
+      client);
 }
 
 inline const CanaryLib::LoginInfo *GetLoginInfo(const void *buf) {

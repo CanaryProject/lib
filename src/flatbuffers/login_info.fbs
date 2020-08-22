@@ -1,5 +1,10 @@
 namespace CanaryLib;
 
+enum Client_t : uint8 { 
+  UNKNOWN = 0x0,
+  CANARY = 0x13
+}
+
 table Challenge {
   timestamp:uint32;
   random:uint8;
@@ -17,5 +22,6 @@ table LoginInfo {
   password:string;
   xtea_key:[uint32];
   game_login_info:GameLoginInfo;
+  client:Client_t = UNKNOWN;
 }
 root_type LoginInfo;

@@ -12,15 +12,17 @@ struct Header;
 struct HeaderBuilder;
 
 enum Protocol_t {
+  Protocol_t_PROTOCOL_NONE = 0,
   Protocol_t_PROTOCOL_LOGIN = 1,
   Protocol_t_PROTOCOL_GAME = 10,
   Protocol_t_PROTOCOL_STATUS = 255,
-  Protocol_t_MIN = Protocol_t_PROTOCOL_LOGIN,
+  Protocol_t_MIN = Protocol_t_PROTOCOL_NONE,
   Protocol_t_MAX = Protocol_t_PROTOCOL_STATUS
 };
 
-inline const Protocol_t (&EnumValuesProtocol_t())[3] {
+inline const Protocol_t (&EnumValuesProtocol_t())[4] {
   static const Protocol_t values[] = {
+    Protocol_t_PROTOCOL_NONE,
     Protocol_t_PROTOCOL_LOGIN,
     Protocol_t_PROTOCOL_GAME,
     Protocol_t_PROTOCOL_STATUS
@@ -30,6 +32,7 @@ inline const Protocol_t (&EnumValuesProtocol_t())[3] {
 
 inline const char *EnumNameProtocol_t(Protocol_t e) {
   switch (e) {
+    case Protocol_t_PROTOCOL_NONE: return "PROTOCOL_NONE";
     case Protocol_t_PROTOCOL_LOGIN: return "PROTOCOL_LOGIN";
     case Protocol_t_PROTOCOL_GAME: return "PROTOCOL_GAME";
     case Protocol_t_PROTOCOL_STATUS: return "PROTOCOL_STATUS";
@@ -55,7 +58,7 @@ struct Header FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<uint8_t>(VT_ENCRYPTED, 1) != 0;
   }
   CanaryLib::Protocol_t protocol_type() const {
-    return static_cast<CanaryLib::Protocol_t>(GetField<uint8_t>(VT_PROTOCOL_TYPE, 10));
+    return static_cast<CanaryLib::Protocol_t>(GetField<uint8_t>(VT_PROTOCOL_TYPE, 0));
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -81,7 +84,7 @@ struct HeaderBuilder {
     fbb_.AddElement<uint8_t>(Header::VT_ENCRYPTED, static_cast<uint8_t>(encrypted), 1);
   }
   void add_protocol_type(CanaryLib::Protocol_t protocol_type) {
-    fbb_.AddElement<uint8_t>(Header::VT_PROTOCOL_TYPE, static_cast<uint8_t>(protocol_type), 10);
+    fbb_.AddElement<uint8_t>(Header::VT_PROTOCOL_TYPE, static_cast<uint8_t>(protocol_type), 0);
   }
   explicit HeaderBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -99,7 +102,7 @@ inline flatbuffers::Offset<Header> CreateHeader(
     uint32_t checksum = 0,
     uint16_t message_size = 0,
     bool encrypted = true,
-    CanaryLib::Protocol_t protocol_type = CanaryLib::Protocol_t_PROTOCOL_GAME) {
+    CanaryLib::Protocol_t protocol_type = CanaryLib::Protocol_t_PROTOCOL_NONE) {
   HeaderBuilder builder_(_fbb);
   builder_.add_checksum(checksum);
   builder_.add_message_size(message_size);
