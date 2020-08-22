@@ -67,8 +67,7 @@ namespace FlatbuffersWrapperTest {
       login_info_builder.add_auth_token(auth_token);
       login_info_builder.add_password(password);
       login_info_builder.add_xtea_key(xtea_key);
-      auto login_info = login_info_builder.Finish();
-      fbb.Finish(login_info);
+      fbb.Finish(login_info_builder.Finish());
 
       auto releasedMsg = fbb.Release();
       auto content_size = releasedMsg.size() + sizeof(uint8_t);
@@ -88,7 +87,7 @@ namespace FlatbuffersWrapperTest {
       auto enc_buffer = fbb.CreateVector(buffer, final_size);
 
       auto challenge = CanaryLib::CreateChallenge(fbb, id32, dmg);
-      auto login_data_os = CanaryLib::CreateLoginData(fbb, CanaryLib::Client_t_CANARY, challenge, enc_buffer);
+      auto login_data_os = CanaryLib::CreateLoginData(fbb, enc_buffer, CanaryLib::Client_t_CANARY, challenge);
       fbb.Finish(login_data_os);
 
       auto login_data = CanaryLib::GetLoginData(fbb.GetBufferPointer());
@@ -120,8 +119,7 @@ namespace FlatbuffersWrapperTest {
       CanaryLib::LoginInfoBuilder login_info_builder(fbb);
       login_info_builder.add_game_login_info(game_login_info);
       login_info_builder.add_xtea_key(xtea_key);
-      auto login_info = login_info_builder.Finish();
-      fbb.Finish(login_info);
+      fbb.Finish(login_info_builder.Finish());
 
       auto releasedMsg = fbb.Release();
       auto content_size = releasedMsg.size() + sizeof(uint8_t);
@@ -141,7 +139,7 @@ namespace FlatbuffersWrapperTest {
       auto enc_buffer = fbb.CreateVector(buffer, final_size);
 
       auto challenge = CanaryLib::CreateChallenge(fbb, id32, dmg);
-      auto login_data_os = CanaryLib::CreateLoginData(fbb, CanaryLib::Client_t_CANARY, challenge, enc_buffer);
+      auto login_data_os = CanaryLib::CreateLoginData(fbb, enc_buffer, CanaryLib::Client_t_CANARY, challenge);
       fbb.Finish(login_data_os);
 
       auto login_data = CanaryLib::GetLoginData(fbb.GetBufferPointer());

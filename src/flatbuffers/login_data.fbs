@@ -11,8 +11,8 @@ table Challenge {
 }
 
 table LoginData {
+  login_info:[ubyte];
   client:Client_t = UNKNOWN;
   challenge:Challenge;
-  login_info:[ubyte];
 }
 root_type LoginData;
