@@ -71,9 +71,13 @@ inline flatbuffers::Offset<Challenge> CreateChallenge(
 struct GameLoginInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef GameLoginInfoBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CHAR_NAME = 4,
-    VT_CHALLENGE = 6
+    VT_SESSION_KEY = 4,
+    VT_CHAR_NAME = 6,
+    VT_CHALLENGE = 8
   };
+  const flatbuffers::String *session_key() const {
+    return GetPointer<const flatbuffers::String *>(VT_SESSION_KEY);
+  }
   const flatbuffers::String *char_name() const {
     return GetPointer<const flatbuffers::String *>(VT_CHAR_NAME);
   }
@@ -82,6 +86,8 @@ struct GameLoginInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SESSION_KEY) &&
+           verifier.VerifyString(session_key()) &&
            VerifyOffset(verifier, VT_CHAR_NAME) &&
            verifier.VerifyString(char_name()) &&
            VerifyOffset(verifier, VT_CHALLENGE) &&
@@ -94,6 +100,9 @@ struct GameLoginInfoBuilder {
   typedef GameLoginInfo Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_session_key(flatbuffers::Offset<flatbuffers::String> session_key) {
+    fbb_.AddOffset(GameLoginInfo::VT_SESSION_KEY, session_key);
+  }
   void add_char_name(flatbuffers::Offset<flatbuffers::String> char_name) {
     fbb_.AddOffset(GameLoginInfo::VT_CHAR_NAME, char_name);
   }
@@ -113,21 +122,26 @@ struct GameLoginInfoBuilder {
 
 inline flatbuffers::Offset<GameLoginInfo> CreateGameLoginInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> session_key = 0,
     flatbuffers::Offset<flatbuffers::String> char_name = 0,
     flatbuffers::Offset<CanaryLib::Challenge> challenge = 0) {
   GameLoginInfoBuilder builder_(_fbb);
   builder_.add_challenge(challenge);
   builder_.add_char_name(char_name);
+  builder_.add_session_key(session_key);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<GameLoginInfo> CreateGameLoginInfoDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
+    const char *session_key = nullptr,
     const char *char_name = nullptr,
     flatbuffers::Offset<CanaryLib::Challenge> challenge = 0) {
+  auto session_key__ = session_key ? _fbb.CreateString(session_key) : 0;
   auto char_name__ = char_name ? _fbb.CreateString(char_name) : 0;
   return CanaryLib::CreateGameLoginInfo(
       _fbb,
+      session_key__,
       char_name__,
       challenge);
 }

@@ -6,6 +6,7 @@ table Challenge {
 }
 
 table GameLoginInfo {
+  session_key:string;
   char_name:string;
   challenge:Challenge;
 }
