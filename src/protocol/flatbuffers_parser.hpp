@@ -24,20 +24,33 @@
 
 #include "general.hpp"
 #include "messages/index.hpp"
+#include "network_message.hpp"
 
 namespace CanaryLib {
   class FlatbuffersParser {
     public:
       FlatbuffersParser(){};
 
-      void parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg, XTEA *xtea);
+      void parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg);
       void parseContentMessage(const ContentMessage *content_msg);
 
+      XTEA xtea;
+
     protected:
-      virtual void parseCharacterList(const CharactersListData *character_list){};
-      virtual void parseError(const ErrorData *error){};
-      virtual void parseLogin(const LoginData *login){};
-      virtual void parseRawData(const RawData *raw_data){};
+      virtual void parseCharacterList(const CharactersListData *character_list) {
+        spdlog::debug("Calling FlatbuffersParser::parseCharacterList");
+      }
+      virtual void parseError(const ErrorData *error) {
+        spdlog::debug("Calling FlatbuffersParser::parseError");
+        spdlog::error("{}", error->message()->str());
+      }
+      virtual void parseLoginData(const LoginData *login) {
+        spdlog::debug("Calling FlatbuffersParser::parseLoginData");
+      }
+      virtual void parseRawData(const RawData *raw_data);
+      virtual void onRecvMessage(NetworkMessage& msg) {
+        spdlog::debug("Calling FlatbuffersParser::onRecvMessage");
+      }
   };
 }
 

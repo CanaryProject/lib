@@ -21,13 +21,14 @@
 #include "flatbuffers_parser.hpp"
 
 namespace CanaryLib {
-  void FlatbuffersParser::parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg, XTEA *xtea) {
+  void FlatbuffersParser::parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg) {
+    spdlog::debug("Calling FlatbuffersParser::parseEncryptedMessage");
     auto header = enc_msg->header();
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
     
     // if non-encrypted then its first message
-    if (xtea && xtea->isEnabled() && header->encrypted()) {
-      xtea->decrypt(enc_msg->header()->message_size(), body_buffer);
+    if (xtea.isEnabled() && header->encrypted()) {
+      xtea.decrypt(enc_msg->header()->message_size(), body_buffer);
     }
 
     parseContentMessage(CanaryLib::GetContentMessage(body_buffer));
@@ -38,6 +39,7 @@ namespace CanaryLib {
    * It will identify the type and call the proper parser method.
   */
   void FlatbuffersParser::parseContentMessage(const ContentMessage *content_msg) {
+    spdlog::debug("Calling FlatbuffersParser::parseContentMessage");
     for (int i = 0; i < content_msg->data()->size(); i++) {
       switch (auto dataType = content_msg->data_type()->GetEnum<DataType>(i)) {
         case DataType_CharactersListData:
@@ -49,7 +51,7 @@ namespace CanaryLib {
           break;
 
         case DataType_LoginData:
-          parseLogin(content_msg->data()->GetAs<LoginData>(i));
+          parseLoginData(content_msg->data()->GetAs<LoginData>(i));
           break;
 
         case DataType_RawData:
@@ -62,5 +64,12 @@ namespace CanaryLib {
           break;
       }
     }
+  }
+
+  void FlatbuffersParser::parseRawData(const CanaryLib::RawData *raw_data) {
+    spdlog::debug("Calling FlatbuffersParser::parseRawData");
+    NetworkMessage msg;
+    msg.write(raw_data->body()->data(), raw_data->size(), CanaryLib::MESSAGE_OPERATION_PEEK);
+    onRecvMessage(msg);
   }
 }
