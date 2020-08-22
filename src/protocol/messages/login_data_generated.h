@@ -8,21 +8,109 @@
 
 namespace CanaryLib {
 
+struct Challenge;
+struct ChallengeBuilder;
+
 struct LoginData;
 struct LoginDataBuilder;
+
+enum Client_t {
+  Client_t_UNKNOWN = 0,
+  Client_t_CANARY = 19,
+  Client_t_MIN = Client_t_UNKNOWN,
+  Client_t_MAX = Client_t_CANARY
+};
+
+inline const Client_t (&EnumValuesClient_t())[2] {
+  static const Client_t values[] = {
+    Client_t_UNKNOWN,
+    Client_t_CANARY
+  };
+  return values;
+}
+
+inline const char *EnumNameClient_t(Client_t e) {
+  switch (e) {
+    case Client_t_UNKNOWN: return "UNKNOWN";
+    case Client_t_CANARY: return "CANARY";
+    default: return "";
+  }
+}
+
+struct Challenge FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ChallengeBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TIMESTAMP = 4,
+    VT_RANDOM = 6
+  };
+  uint32_t timestamp() const {
+    return GetField<uint32_t>(VT_TIMESTAMP, 0);
+  }
+  uint8_t random() const {
+    return GetField<uint8_t>(VT_RANDOM, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_TIMESTAMP) &&
+           VerifyField<uint8_t>(verifier, VT_RANDOM) &&
+           verifier.EndTable();
+  }
+};
+
+struct ChallengeBuilder {
+  typedef Challenge Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_timestamp(uint32_t timestamp) {
+    fbb_.AddElement<uint32_t>(Challenge::VT_TIMESTAMP, timestamp, 0);
+  }
+  void add_random(uint8_t random) {
+    fbb_.AddElement<uint8_t>(Challenge::VT_RANDOM, random, 0);
+  }
+  explicit ChallengeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Challenge> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Challenge>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Challenge> CreateChallenge(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t timestamp = 0,
+    uint8_t random = 0) {
+  ChallengeBuilder builder_(_fbb);
+  builder_.add_timestamp(timestamp);
+  builder_.add_random(random);
+  return builder_.Finish();
+}
 
 struct LoginData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef LoginDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BODY = 4
+    VT_CLIENT = 4,
+    VT_CHALLENGE = 6,
+    VT_LOGIN_INFO = 8
   };
-  const flatbuffers::Vector<uint8_t> *body() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
+  CanaryLib::Client_t client() const {
+    return static_cast<CanaryLib::Client_t>(GetField<uint8_t>(VT_CLIENT, 0));
+  }
+  const CanaryLib::Challenge *challenge() const {
+    return GetPointer<const CanaryLib::Challenge *>(VT_CHALLENGE);
+  }
+  const flatbuffers::Vector<uint8_t> *login_info() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_LOGIN_INFO);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_BODY) &&
-           verifier.VerifyVector(body()) &&
+           VerifyField<uint8_t>(verifier, VT_CLIENT) &&
+           VerifyOffset(verifier, VT_CHALLENGE) &&
+           verifier.VerifyTable(challenge()) &&
+           VerifyOffset(verifier, VT_LOGIN_INFO) &&
+           verifier.VerifyVector(login_info()) &&
            verifier.EndTable();
   }
 };
@@ -31,8 +119,14 @@ struct LoginDataBuilder {
   typedef LoginData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
-    fbb_.AddOffset(LoginData::VT_BODY, body);
+  void add_client(CanaryLib::Client_t client) {
+    fbb_.AddElement<uint8_t>(LoginData::VT_CLIENT, static_cast<uint8_t>(client), 0);
+  }
+  void add_challenge(flatbuffers::Offset<CanaryLib::Challenge> challenge) {
+    fbb_.AddOffset(LoginData::VT_CHALLENGE, challenge);
+  }
+  void add_login_info(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> login_info) {
+    fbb_.AddOffset(LoginData::VT_LOGIN_INFO, login_info);
   }
   explicit LoginDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -47,19 +141,27 @@ struct LoginDataBuilder {
 
 inline flatbuffers::Offset<LoginData> CreateLoginData(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0) {
+    CanaryLib::Client_t client = CanaryLib::Client_t_UNKNOWN,
+    flatbuffers::Offset<CanaryLib::Challenge> challenge = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> login_info = 0) {
   LoginDataBuilder builder_(_fbb);
-  builder_.add_body(body);
+  builder_.add_login_info(login_info);
+  builder_.add_challenge(challenge);
+  builder_.add_client(client);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<LoginData> CreateLoginDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *body = nullptr) {
-  auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
+    CanaryLib::Client_t client = CanaryLib::Client_t_UNKNOWN,
+    flatbuffers::Offset<CanaryLib::Challenge> challenge = 0,
+    const std::vector<uint8_t> *login_info = nullptr) {
+  auto login_info__ = login_info ? _fbb.CreateVector<uint8_t>(*login_info) : 0;
   return CanaryLib::CreateLoginData(
       _fbb,
-      body__);
+      client,
+      challenge,
+      login_info__);
 }
 
 inline const CanaryLib::LoginData *GetLoginData(const void *buf) {

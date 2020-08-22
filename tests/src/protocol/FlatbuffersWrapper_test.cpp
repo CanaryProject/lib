@@ -37,7 +37,7 @@ namespace FlatbuffersWrapperTest {
       auto content_msg = CanaryLib::GetContentMessage(body_buffer);
 
       CHECK_EQ(enc_msg->header()->encrypted(), !!_xtea);
-      CHECK_EQ(content_msg->data()->size(), 3);
+      CHECK_EQ(content_msg->data()->size(), 2);
 
       CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(0), CanaryLib::DataType_ErrorData);
       CHECK_EQ(content_msg->data_type()->GetEnum<CanaryLib::DataType>(1), CanaryLib::DataType_RawData);
@@ -47,8 +47,116 @@ namespace FlatbuffersWrapperTest {
 
       auto raw = content_msg->data()->GetAs<CanaryLib::RawData>(1);
       
-      CHECK_EQ(std::string((char *) raw->body()->data()), rawStr);
+      std::string str = std::string((char *) raw->body()->data());
+      str.resize(rawStr.size());
+      CHECK_EQ(str, rawStr);
       CHECK_EQ(raw->size(), rawStr.size());
+    }
+
+    TEST_CASE("Login data") {
+      CanaryLib::FlatbuffersWrapper wrapper;
+
+      flatbuffers::FlatBufferBuilder &fbb = wrapper.Builder();
+
+      auto account = fbb.CreateString(rawStr);
+      auto auth_token = fbb.CreateString(rawStr);
+      auto password = fbb.CreateString(rawStr);
+      auto xtea_key = fbb.CreateVector(xtea.generateKey(), 4);
+      CanaryLib::LoginInfoBuilder login_info_builder(fbb);
+      login_info_builder.add_account(account);
+      login_info_builder.add_auth_token(auth_token);
+      login_info_builder.add_password(password);
+      login_info_builder.add_xtea_key(xtea_key);
+      auto login_info = login_info_builder.Finish();
+      fbb.Finish(login_info);
+
+      auto releasedMsg = fbb.Release();
+      auto content_size = releasedMsg.size() + sizeof(uint8_t);
+
+      auto parsed_info = CanaryLib::GetLoginInfo(releasedMsg.data());
+
+      uint8_t buffer[128];
+      uint8_t padding = 128 - content_size;
+
+      uint8_t byte = 0x00;
+      memcpy(buffer, &byte, 1);
+      memcpy(buffer + sizeof(uint8_t), releasedMsg.data(), releasedMsg.size());
+      memcpy(buffer + content_size, &byte, padding);
+      uint8_t final_size = content_size + padding;
+      assert(final_size == 128);
+
+      auto enc_buffer = fbb.CreateVector(buffer, final_size);
+
+      auto challenge = CanaryLib::CreateChallenge(fbb, id32, dmg);
+      auto login_data_os = CanaryLib::CreateLoginData(fbb, CanaryLib::Client_t_CANARY, challenge, enc_buffer);
+      fbb.Finish(login_data_os);
+
+      auto login_data = CanaryLib::GetLoginData(fbb.GetBufferPointer());
+
+      CHECK_EQ(login_data->challenge()->random(), dmg);
+      CHECK_EQ(login_data->challenge()->timestamp(), id32);
+      CHECK_EQ(login_data->client(), CanaryLib::Client_t_CANARY);
+
+      uint8_t buffer2[login_data->login_info()->size()];
+      memcpy(buffer2, login_data->login_info()->data() + 1, login_data->login_info()->size());
+      parsed_info = CanaryLib::GetLoginInfo(buffer2);
+
+      CHECK_EQ(parsed_info->xtea_key()->size(), 4);
+      CHECK_EQ(parsed_info->auth_token()->str(), rawStr);
+      CHECK_EQ(parsed_info->password()->str(), rawStr);
+      CHECK_EQ(parsed_info->account()->str(), rawStr);
+    }
+
+    TEST_CASE("Login Game Data") {
+      CanaryLib::FlatbuffersWrapper wrapper;
+
+      flatbuffers::FlatBufferBuilder &fbb = wrapper.Builder();
+
+      auto char_name = fbb.CreateString(rawStr);
+      auto session_key = fbb.CreateString(rawStr);
+      auto game_login_info = CanaryLib::CreateGameLoginInfo(fbb, session_key, char_name);
+
+      auto xtea_key = fbb.CreateVector(xtea.generateKey(), 4);
+      CanaryLib::LoginInfoBuilder login_info_builder(fbb);
+      login_info_builder.add_game_login_info(game_login_info);
+      login_info_builder.add_xtea_key(xtea_key);
+      auto login_info = login_info_builder.Finish();
+      fbb.Finish(login_info);
+
+      auto releasedMsg = fbb.Release();
+      auto content_size = releasedMsg.size() + sizeof(uint8_t);
+
+      auto parsed_info = CanaryLib::GetLoginInfo(releasedMsg.data());
+
+      uint8_t buffer[128];
+      uint8_t padding = 128 - content_size;
+
+      uint8_t byte = 0x00;
+      memcpy(buffer, &byte, 1);
+      memcpy(buffer + sizeof(uint8_t), releasedMsg.data(), releasedMsg.size());
+      memcpy(buffer + content_size, &byte, padding);
+      uint8_t final_size = content_size + padding;
+      assert(final_size == 128);
+
+      auto enc_buffer = fbb.CreateVector(buffer, final_size);
+
+      auto challenge = CanaryLib::CreateChallenge(fbb, id32, dmg);
+      auto login_data_os = CanaryLib::CreateLoginData(fbb, CanaryLib::Client_t_CANARY, challenge, enc_buffer);
+      fbb.Finish(login_data_os);
+
+      auto login_data = CanaryLib::GetLoginData(fbb.GetBufferPointer());
+
+      CHECK_EQ(login_data->challenge()->random(), dmg);
+      CHECK_EQ(login_data->challenge()->timestamp(), id32);
+      CHECK_EQ(login_data->client(), CanaryLib::Client_t_CANARY);
+
+      uint8_t buffer2[login_data->login_info()->size()];
+      memcpy(buffer2, login_data->login_info()->data() + 1, login_data->login_info()->size());
+      parsed_info = CanaryLib::GetLoginInfo(buffer2);
+
+      CHECK_EQ(parsed_info->game_login_info()->char_name()->str(), rawStr);
+      CHECK_EQ(parsed_info->game_login_info()->session_key()->str(), rawStr);
+      CHECK_EQ(parsed_info->xtea_key()->size(), 4);
     }
 
     TEST_CASE("Copy") {
@@ -117,8 +225,8 @@ namespace FlatbuffersWrapperTest {
     TEST_CASE("Add") {
       CanaryLib::FlatbuffersWrapper wrapper1;
       generateBaseWrapper(wrapper1);
-      CHECK_EQ(wrapper1.Types().size(), 3);
-      CHECK_EQ(wrapper1.Contents().size(), 3);
+      CHECK_EQ(wrapper1.Types().size(), 2);
+      CHECK_EQ(wrapper1.Contents().size(), 2);
 
       wrapper1.Finish();
       CHECK_THROWS_AS(flatbuffers::FlatBufferBuilder &fbb = wrapper1.Builder(), std::domain_error);
