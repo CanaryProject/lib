@@ -102,6 +102,10 @@ namespace CanaryLib {
 
       static uint32_t getChecksum(const uint8_t* data, size_t length);
 
+      void setProtocolType(Protocol_t type) {
+        protocolType = type;
+      }
+
     private:
       uint8_t w_buffer[WRAPPER_MAX_BODY_SIZE];
       uint16_t w_size;
@@ -113,6 +117,8 @@ namespace CanaryLib {
 
       bool enableXteaEncryption = true;
       bool lockBuffersWrite = false;
+
+      Protocol_t protocolType = Protocol_t_PROTOCOL_GAME;
   };
 
   class FlatbuffersWraperBalancer {

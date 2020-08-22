@@ -42,7 +42,7 @@ namespace CanaryLib {
       }
       uint32_t checksum = FlatbuffersWrapper::getChecksum(content_buffer, content_size);
       auto content = fbb.CreateVector(content_buffer, content_size);
-      auto header = CreateHeader(fbb, checksum, content_size, encrypted);
+      auto header = CreateHeader(fbb, checksum, content_size, encrypted, protocolType);
 
       auto enc_message = CreateEncryptedMessage(fbb, header, content);
       fbb.Finish(enc_message);  

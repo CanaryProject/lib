@@ -46,12 +46,6 @@ namespace CanaryLib {
     CHECKSUM_METHOD_ADLER32,
     CHECKSUM_METHOD_SEQUENCE
   };
-
-	enum Protocol_t : uint8_t {
-    PROTOCOL_LOGIN = 0x01,
-    PROTOCOL_GAME = 0x0A,
-    PROTOCOL_STATUS = 0xFF
-	};
 }
 
 #endif

@@ -1,9 +1,17 @@
 namespace CanaryLib;
 
+enum Protocol_t : uint8 { 
+  PROTOCOL_LOGIN = 0x01,
+  PROTOCOL_GAME = 0x0A,
+  PROTOCOL_STATUS = 0xFF
+}
+
+    
 table Header {
   checksum:uint32 = 0;
   message_size:uint16 = 0;
   encrypted:bool = true;
+  protocol_type:Protocol_t = PROTOCOL_GAME;
 }
 
 root_type Header;

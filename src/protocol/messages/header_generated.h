@@ -11,12 +11,39 @@ namespace CanaryLib {
 struct Header;
 struct HeaderBuilder;
 
+enum Protocol_t {
+  Protocol_t_PROTOCOL_LOGIN = 1,
+  Protocol_t_PROTOCOL_GAME = 10,
+  Protocol_t_PROTOCOL_STATUS = 255,
+  Protocol_t_MIN = Protocol_t_PROTOCOL_LOGIN,
+  Protocol_t_MAX = Protocol_t_PROTOCOL_STATUS
+};
+
+inline const Protocol_t (&EnumValuesProtocol_t())[3] {
+  static const Protocol_t values[] = {
+    Protocol_t_PROTOCOL_LOGIN,
+    Protocol_t_PROTOCOL_GAME,
+    Protocol_t_PROTOCOL_STATUS
+  };
+  return values;
+}
+
+inline const char *EnumNameProtocol_t(Protocol_t e) {
+  switch (e) {
+    case Protocol_t_PROTOCOL_LOGIN: return "PROTOCOL_LOGIN";
+    case Protocol_t_PROTOCOL_GAME: return "PROTOCOL_GAME";
+    case Protocol_t_PROTOCOL_STATUS: return "PROTOCOL_STATUS";
+    default: return "";
+  }
+}
+
 struct Header FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef HeaderBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CHECKSUM = 4,
     VT_MESSAGE_SIZE = 6,
-    VT_ENCRYPTED = 8
+    VT_ENCRYPTED = 8,
+    VT_PROTOCOL_TYPE = 10
   };
   uint32_t checksum() const {
     return GetField<uint32_t>(VT_CHECKSUM, 0);
@@ -27,11 +54,15 @@ struct Header FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool encrypted() const {
     return GetField<uint8_t>(VT_ENCRYPTED, 1) != 0;
   }
+  CanaryLib::Protocol_t protocol_type() const {
+    return static_cast<CanaryLib::Protocol_t>(GetField<uint8_t>(VT_PROTOCOL_TYPE, 10));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_CHECKSUM) &&
            VerifyField<uint16_t>(verifier, VT_MESSAGE_SIZE) &&
            VerifyField<uint8_t>(verifier, VT_ENCRYPTED) &&
+           VerifyField<uint8_t>(verifier, VT_PROTOCOL_TYPE) &&
            verifier.EndTable();
   }
 };
@@ -49,6 +80,9 @@ struct HeaderBuilder {
   void add_encrypted(bool encrypted) {
     fbb_.AddElement<uint8_t>(Header::VT_ENCRYPTED, static_cast<uint8_t>(encrypted), 1);
   }
+  void add_protocol_type(CanaryLib::Protocol_t protocol_type) {
+    fbb_.AddElement<uint8_t>(Header::VT_PROTOCOL_TYPE, static_cast<uint8_t>(protocol_type), 10);
+  }
   explicit HeaderBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -64,10 +98,12 @@ inline flatbuffers::Offset<Header> CreateHeader(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t checksum = 0,
     uint16_t message_size = 0,
-    bool encrypted = true) {
+    bool encrypted = true,
+    CanaryLib::Protocol_t protocol_type = CanaryLib::Protocol_t_PROTOCOL_GAME) {
   HeaderBuilder builder_(_fbb);
   builder_.add_checksum(checksum);
   builder_.add_message_size(message_size);
+  builder_.add_protocol_type(protocol_type);
   builder_.add_encrypted(encrypted);
   return builder_.Finish();
 }
