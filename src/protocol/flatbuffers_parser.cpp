@@ -23,6 +23,8 @@
 namespace CanaryLib {
   void FlatbuffersParser::parseEncryptedMessage(const CanaryLib::EncryptedMessage *enc_msg) {
     spdlog::debug("Calling FlatbuffersParser::parseEncryptedMessage");
+    if (!enc_msg || !enc_msg->header() || !enc_msg->body()) return;
+
     auto header = enc_msg->header();
     uint8_t *body_buffer = (uint8_t *) enc_msg->body()->Data();
     
@@ -40,6 +42,8 @@ namespace CanaryLib {
   */
   void FlatbuffersParser::parseContentMessage(const ContentMessage *content_msg) {
     spdlog::debug("Calling FlatbuffersParser::parseContentMessage");
+    if (!content_msg || !content_msg->data() || !content_msg->data_type()) return;
+
     for (int i = 0; i < content_msg->data()->size(); i++) {
       switch (auto dataType = content_msg->data_type()->GetEnum<DataType>(i)) {
         case DataType_CharactersListData:
@@ -68,6 +72,7 @@ namespace CanaryLib {
 
   void FlatbuffersParser::parseRawData(const CanaryLib::RawData *raw_data) {
     spdlog::debug("Calling FlatbuffersParser::parseRawData");
+    if (!raw_data || !raw_data->body()) return;
     NetworkMessage msg;
     msg.write(raw_data->body()->data(), raw_data->size(), CanaryLib::MESSAGE_OPERATION_PEEK);
     onRecvMessage(msg);
