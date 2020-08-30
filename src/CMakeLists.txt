@@ -109,21 +109,36 @@ endif()
 # === Add Warnings Flags ===
 if(OPTIONS_WARNINGS_FLAGS)
   log_option_enabled("warning flags")
-  set(CLANG_WARNINGS -Wall
-                    -Wextra
-                    -Wpedantic
-                    -Wshadow
-                    -Wnon-virtual-dtor
-                    -Wold-style-cast
-                    -Wcast-align
-                    -Wunused
-                    -Woverloaded-virtual
-                    -Wsign-conversion
-                    -Wnull-dereference
-                    -Wdouble-promotion
-                    -Wformat=2
-                    -Wno-c99-extensions
-    )
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CLANG_WARNINGS -Wall
+                      -Wpedantic
+                      -Wextra
+                      -Wshadow
+                      -Wnon-virtual-dtor
+                      -Wold-style-cast
+                      -Wcast-align
+                      -Woverloaded-virtual
+                      -Wsign-conversion
+                      -Wnull-dereference
+                      -Wdouble-promotion
+                      -Wformat=2
+                      -Wno-c99-extensions
+      )
+  else()
+    set(CLANG_WARNINGS -Wall
+                      -Wpedantic
+                      -Wshadow
+                      -Wnon-virtual-dtor
+                      -Wold-style-cast
+                      -Wcast-align
+                      -Woverloaded-virtual
+                      -Wsign-conversion
+                      -Wnull-dereference
+                      -Wdouble-promotion
+                      -Wformat=2
+                      -Wno-c99-extensions
+      )
+  endif()
 
   set(GCC_WARNINGS ${CLANG_WARNINGS}
                   -Wmisleading-indentation
