@@ -1,0 +1,76 @@
+namespace CanaryLib;
+
+enum CreatureType_t : uint8 { 
+	CREATURETYPE_PLAYER,
+	CREATURETYPE_MONSTER,
+	CREATURETYPE_NPC,
+	CREATURETYPE_SUMMON_OWN,
+	CREATURETYPE_SUMMON_OTHERS
+}
+
+struct Light {
+  color:uint8;
+  intensity:uint8;
+}
+
+struct Position {
+  x:uint16;
+  y:uint16;
+  z:uint8;
+}
+
+struct Outfit {
+	id:uint16;
+	body:uint8;
+	feet:uint8;
+	head:uint8;
+	legs:uint8;
+	addon:uint8;
+	mount:uint16;
+	item_id:uint16;
+}
+
+struct ItemInfo {
+	id:uint16;
+	count:uint8;
+	fluid_type:uint8;
+}
+
+table CreatureInfo {
+	id:uint32;
+	known:bool;
+	remove_id:uint32;
+	type:CreatureType_t;
+
+	name:string;
+	direction:uint8;
+	health_percent:uint8 = 100;
+	light:Light;
+	outfit:Outfit;
+	speed:uint16;
+	walkable:bool = false;
+	
+	guild_emblem:uint8;
+	icon:uint8;
+	party_shield:uint8;
+	skull:uint8;
+	square_mark:uint8 = 0xFF;
+
+	master_id:uint32;
+}
+
+table Tile {
+	creatures:[CreatureInfo];
+	ground:ItemInfo;
+	ground_borders:[ItemInfo];
+	bottom_items:[ItemInfo];
+	top_items:[ItemInfo];
+	common_items:[ItemInfo];
+}
+
+table FloorData {
+	tiles:[Tile];
+	central_pos:Position;
+	size:Position;
+}
+root_type FloorData;

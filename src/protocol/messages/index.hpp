@@ -25,8 +25,12 @@
 #include "header_generated.h"
 #include "login_info_generated.h"
 
+/**
+ * DataTypes (belongs to content message)
+ */
 #include "characters_list_data_generated.h"
 #include "error_data_generated.h"
+#include "floor_data_generated.h"
 #include "login_data_generated.h"
 #include "raw_data_generated.h"
 
