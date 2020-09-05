@@ -1,0 +1,17 @@
+include "creature_data.fbs";
+include "item_data.fbs";
+include "general_structures.fbs";
+
+namespace CanaryLib;
+
+union Thing { 
+  CreatureData,
+  ItemData
+}
+
+table ThingData {
+	thing:Thing;
+	central_pos:Position;
+	clean_tile:bool;
+}
+root_type ThingData;

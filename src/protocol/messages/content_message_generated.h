@@ -7,10 +7,13 @@
 #include "flatbuffers/flatbuffers.h"
 
 #include "characters_list_data_generated.h"
+#include "creature_data_generated.h"
 #include "error_data_generated.h"
-#include "floor_data_generated.h"
+#include "general_structures_generated.h"
+#include "item_data_generated.h"
 #include "login_data_generated.h"
 #include "raw_data_generated.h"
+#include "thing_data_generated.h"
 
 namespace CanaryLib {
 
@@ -21,11 +24,11 @@ enum DataType {
   DataType_NONE = 0,
   DataType_CharactersListData = 1,
   DataType_ErrorData = 2,
-  DataType_FloorData = 3,
-  DataType_LoginData = 4,
-  DataType_RawData = 5,
+  DataType_LoginData = 3,
+  DataType_RawData = 4,
+  DataType_ThingData = 5,
   DataType_MIN = DataType_NONE,
-  DataType_MAX = DataType_RawData
+  DataType_MAX = DataType_ThingData
 };
 
 inline const DataType (&EnumValuesDataType())[6] {
@@ -33,9 +36,9 @@ inline const DataType (&EnumValuesDataType())[6] {
     DataType_NONE,
     DataType_CharactersListData,
     DataType_ErrorData,
-    DataType_FloorData,
     DataType_LoginData,
-    DataType_RawData
+    DataType_RawData,
+    DataType_ThingData
   };
   return values;
 }
@@ -45,16 +48,16 @@ inline const char * const *EnumNamesDataType() {
     "NONE",
     "CharactersListData",
     "ErrorData",
-    "FloorData",
     "LoginData",
     "RawData",
+    "ThingData",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameDataType(DataType e) {
-  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_RawData)) return "";
+  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_ThingData)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesDataType()[index];
 }
@@ -71,16 +74,16 @@ template<> struct DataTypeTraits<CanaryLib::ErrorData> {
   static const DataType enum_value = DataType_ErrorData;
 };
 
-template<> struct DataTypeTraits<CanaryLib::FloorData> {
-  static const DataType enum_value = DataType_FloorData;
-};
-
 template<> struct DataTypeTraits<CanaryLib::LoginData> {
   static const DataType enum_value = DataType_LoginData;
 };
 
 template<> struct DataTypeTraits<CanaryLib::RawData> {
   static const DataType enum_value = DataType_RawData;
+};
+
+template<> struct DataTypeTraits<CanaryLib::ThingData> {
+  static const DataType enum_value = DataType_ThingData;
 };
 
 bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, DataType type);
@@ -165,16 +168,16 @@ inline bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, Dat
       auto ptr = reinterpret_cast<const CanaryLib::ErrorData *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case DataType_FloorData: {
-      auto ptr = reinterpret_cast<const CanaryLib::FloorData *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
     case DataType_LoginData: {
       auto ptr = reinterpret_cast<const CanaryLib::LoginData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case DataType_RawData: {
       auto ptr = reinterpret_cast<const CanaryLib::RawData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case DataType_ThingData: {
+      auto ptr = reinterpret_cast<const CanaryLib::ThingData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

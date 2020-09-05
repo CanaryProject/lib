@@ -1,0 +1,23 @@
+namespace CanaryLib;
+
+struct Light {
+  color:uint8;
+  intensity:uint8;
+}
+
+struct Position {
+  x:uint16;
+  y:uint16;
+  z:uint8;
+}
+
+struct Outfit {
+	id:uint16;
+	body:uint8;
+	feet:uint8;
+	head:uint8;
+	legs:uint8;
+	addon:uint8;
+	mount:uint16;
+	item_id:uint16;
+}

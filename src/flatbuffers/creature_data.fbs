@@ -1,0 +1,36 @@
+include "general_structures.fbs";
+
+namespace CanaryLib;
+
+enum CreatureType_t : uint8 { 
+	CREATURETYPE_PLAYER,
+	CREATURETYPE_MONSTER,
+	CREATURETYPE_NPC,
+	CREATURETYPE_SUMMON_OWN,
+	CREATURETYPE_SUMMON_OTHERS
+}
+
+table CreatureData {
+	id:uint32;
+	known:bool;
+	remove_id:uint32;
+	type:CreatureType_t;
+
+	name:string;
+	direction:uint8;
+	health_percent:uint8 = 100;
+	light:Light;
+	outfit:Outfit;
+	speed:uint16;
+	walkable:bool = false;
+	
+	guild_emblem:uint8;
+	icon:uint8;
+	party_shield:uint8;
+	skull:uint8;
+	square_mark:uint8 = 0xFF;
+
+	master_id:uint32;
+}
+
+root_type CreatureData;

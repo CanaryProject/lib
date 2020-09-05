@@ -1,0 +1,10 @@
+include "creature_data.fbs";
+include "general_structures.fbs";
+
+namespace CanaryLib;
+
+struct ItemData {
+	id:uint16;
+	count:uint16;
+	fluid_type:uint16;
+}

@@ -1,17 +1,17 @@
 include "characters_list_data.fbs";
 include "error_data.fbs";
-include "floor_data.fbs";
 include "login_data.fbs";
 include "raw_data.fbs";
+include "thing_data.fbs";
 
 namespace CanaryLib;
 
 union DataType { 
   CharactersListData,
   ErrorData,
-  FloorData,
   LoginData,
-  RawData
+  RawData,
+  ThingData
 }
 
 table ContentMessage {

@@ -29,9 +29,12 @@
  * DataTypes (belongs to content message)
  */
 #include "characters_list_data_generated.h"
+#include "creature_data_generated.h"
 #include "error_data_generated.h"
-#include "floor_data_generated.h"
+#include "general_structures_generated.h"
+#include "item_data_generated.h"
 #include "login_data_generated.h"
 #include "raw_data_generated.h"
+#include "thing_data_generated.h"
 
 #endif
