@@ -70,7 +70,7 @@ struct ThingData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_THING = 6,
     VT_POS = 8,
     VT_CLEAN_TILE = 10,
-    VT_IS_PLAYER_POS = 12
+    VT_IS_CENTRAL_POS = 12
   };
   CanaryLib::Thing thing_type() const {
     return static_cast<CanaryLib::Thing>(GetField<uint8_t>(VT_THING_TYPE, 0));
@@ -91,8 +91,8 @@ struct ThingData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool clean_tile() const {
     return GetField<uint8_t>(VT_CLEAN_TILE, 0) != 0;
   }
-  bool is_player_pos() const {
-    return GetField<uint8_t>(VT_IS_PLAYER_POS, 0) != 0;
+  bool is_central_pos() const {
+    return GetField<uint8_t>(VT_IS_CENTRAL_POS, 0) != 0;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -101,7 +101,7 @@ struct ThingData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyThing(verifier, thing(), thing_type()) &&
            VerifyField<CanaryLib::Position>(verifier, VT_POS) &&
            VerifyField<uint8_t>(verifier, VT_CLEAN_TILE) &&
-           VerifyField<uint8_t>(verifier, VT_IS_PLAYER_POS) &&
+           VerifyField<uint8_t>(verifier, VT_IS_CENTRAL_POS) &&
            verifier.EndTable();
   }
 };
@@ -130,8 +130,8 @@ struct ThingDataBuilder {
   void add_clean_tile(bool clean_tile) {
     fbb_.AddElement<uint8_t>(ThingData::VT_CLEAN_TILE, static_cast<uint8_t>(clean_tile), 0);
   }
-  void add_is_player_pos(bool is_player_pos) {
-    fbb_.AddElement<uint8_t>(ThingData::VT_IS_PLAYER_POS, static_cast<uint8_t>(is_player_pos), 0);
+  void add_is_central_pos(bool is_central_pos) {
+    fbb_.AddElement<uint8_t>(ThingData::VT_IS_CENTRAL_POS, static_cast<uint8_t>(is_central_pos), 0);
   }
   explicit ThingDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -150,11 +150,11 @@ inline flatbuffers::Offset<ThingData> CreateThingData(
     flatbuffers::Offset<void> thing = 0,
     const CanaryLib::Position *pos = 0,
     bool clean_tile = false,
-    bool is_player_pos = false) {
+    bool is_central_pos = false) {
   ThingDataBuilder builder_(_fbb);
   builder_.add_pos(pos);
   builder_.add_thing(thing);
-  builder_.add_is_player_pos(is_player_pos);
+  builder_.add_is_central_pos(is_central_pos);
   builder_.add_clean_tile(clean_tile);
   builder_.add_thing_type(thing_type);
   return builder_.Finish();
