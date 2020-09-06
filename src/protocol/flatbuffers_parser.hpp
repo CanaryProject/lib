@@ -49,6 +49,15 @@ namespace CanaryLib {
         spdlog::debug("Calling FlatbuffersParser::parseLoginData");
       }
       virtual void parseRawData(const RawData *raw_data);
+
+      virtual void parseThingData(const ThingData* thing);
+      virtual void parseCreatureData(const CreatureData* creature, const Position *pos) {
+        spdlog::debug("Calling FlatbuffersParser::parseCreatureData");
+      }
+      virtual void parseItemData(const ItemData* item, const Position* pos) {
+        spdlog::debug("Calling FlatbuffersParser::parseItemData");
+      }
+
       virtual void onRecvMessage(NetworkMessage& msg) {
         spdlog::debug("Calling FlatbuffersParser::onRecvMessage");
       }

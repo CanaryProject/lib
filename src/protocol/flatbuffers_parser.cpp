@@ -61,10 +61,14 @@ namespace CanaryLib {
         case DataType_RawData:
           parseRawData(content_msg->data()->GetAs<RawData>(i));
           break;
+
+        case DataType_ThingData:
+          parseThingData(content_msg->data()->GetAs<ThingData>(i));
+          break;
         
         case DataType_NONE:
         default:
-          spdlog::warn("[Protocol::parseContentMessage] Invalid {} content message data type was skipped.", dataType);
+          spdlog::warn("[FlatbuffersParser::parseContentMessage] Invalid {} content message data type was skipped.", dataType);
           break;
       }
     }
@@ -76,5 +80,22 @@ namespace CanaryLib {
     NetworkMessage msg;
     msg.write(raw_data->body()->data(), raw_data->size(), CanaryLib::MESSAGE_OPERATION_PEEK);
     onRecvMessage(msg);
+  }
+
+  void FlatbuffersParser::parseThingData(const ThingData* thing) {
+    switch (auto thingType = thing->thing_type()) {
+      case Thing_CreatureData:
+        parseCreatureData(thing->thing_as_CreatureData(), thing->central_pos());
+        break;
+
+      case Thing_ItemData:
+        parseItemData(thing->thing_as_ItemData(), thing->central_pos());
+        break;
+
+      case DataType_NONE:
+      default:
+        spdlog::warn("[FlatbuffersParser::parseThingData] Invalid {} thing type was skipped.", thingType);
+        break;
+    }
   }
 }
