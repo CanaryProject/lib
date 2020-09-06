@@ -68,8 +68,9 @@ struct ThingData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_THING_TYPE = 4,
     VT_THING = 6,
-    VT_CENTRAL_POS = 8,
-    VT_CLEAN_TILE = 10
+    VT_POS = 8,
+    VT_CLEAN_TILE = 10,
+    VT_PLAYER_POS = 12
   };
   CanaryLib::Thing thing_type() const {
     return static_cast<CanaryLib::Thing>(GetField<uint8_t>(VT_THING_TYPE, 0));
@@ -84,19 +85,23 @@ struct ThingData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const CanaryLib::ItemData *thing_as_ItemData() const {
     return thing_type() == CanaryLib::Thing_ItemData ? static_cast<const CanaryLib::ItemData *>(thing()) : nullptr;
   }
-  const CanaryLib::Position *central_pos() const {
-    return GetStruct<const CanaryLib::Position *>(VT_CENTRAL_POS);
+  const CanaryLib::Position *pos() const {
+    return GetStruct<const CanaryLib::Position *>(VT_POS);
   }
   bool clean_tile() const {
     return GetField<uint8_t>(VT_CLEAN_TILE, 0) != 0;
+  }
+  bool player_pos() const {
+    return GetField<uint8_t>(VT_PLAYER_POS, 0) != 0;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_THING_TYPE) &&
            VerifyOffset(verifier, VT_THING) &&
            VerifyThing(verifier, thing(), thing_type()) &&
-           VerifyField<CanaryLib::Position>(verifier, VT_CENTRAL_POS) &&
+           VerifyField<CanaryLib::Position>(verifier, VT_POS) &&
            VerifyField<uint8_t>(verifier, VT_CLEAN_TILE) &&
+           VerifyField<uint8_t>(verifier, VT_PLAYER_POS) &&
            verifier.EndTable();
   }
 };
@@ -119,11 +124,14 @@ struct ThingDataBuilder {
   void add_thing(flatbuffers::Offset<void> thing) {
     fbb_.AddOffset(ThingData::VT_THING, thing);
   }
-  void add_central_pos(const CanaryLib::Position *central_pos) {
-    fbb_.AddStruct(ThingData::VT_CENTRAL_POS, central_pos);
+  void add_pos(const CanaryLib::Position *pos) {
+    fbb_.AddStruct(ThingData::VT_POS, pos);
   }
   void add_clean_tile(bool clean_tile) {
     fbb_.AddElement<uint8_t>(ThingData::VT_CLEAN_TILE, static_cast<uint8_t>(clean_tile), 0);
+  }
+  void add_player_pos(bool player_pos) {
+    fbb_.AddElement<uint8_t>(ThingData::VT_PLAYER_POS, static_cast<uint8_t>(player_pos), 0);
   }
   explicit ThingDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -140,11 +148,13 @@ inline flatbuffers::Offset<ThingData> CreateThingData(
     flatbuffers::FlatBufferBuilder &_fbb,
     CanaryLib::Thing thing_type = CanaryLib::Thing_NONE,
     flatbuffers::Offset<void> thing = 0,
-    const CanaryLib::Position *central_pos = 0,
-    bool clean_tile = false) {
+    const CanaryLib::Position *pos = 0,
+    bool clean_tile = false,
+    bool player_pos = false) {
   ThingDataBuilder builder_(_fbb);
-  builder_.add_central_pos(central_pos);
+  builder_.add_pos(pos);
   builder_.add_thing(thing);
+  builder_.add_player_pos(player_pos);
   builder_.add_clean_tile(clean_tile);
   builder_.add_thing_type(thing_type);
   return builder_.Finish();

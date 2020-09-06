@@ -85,11 +85,11 @@ namespace CanaryLib {
   void FlatbuffersParser::parseThingData(const ThingData* thing) {
     switch (auto thingType = thing->thing_type()) {
       case Thing_CreatureData:
-        parseCreatureData(thing->thing_as_CreatureData(), thing->central_pos());
+        parseCreatureData(thing->thing_as_CreatureData(), thing->pos());
         break;
 
       case Thing_ItemData:
-        parseItemData(thing->thing_as_ItemData(), thing->central_pos());
+        parseItemData(thing->thing_as_ItemData(), thing->pos());
         break;
 
       case DataType_NONE:

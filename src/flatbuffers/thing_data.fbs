@@ -11,7 +11,8 @@ union Thing {
 
 table ThingData {
 	thing:Thing;
-	central_pos:Position;
-	clean_tile:bool;
+	pos:Position;
+	clean_tile:bool = false;
+	player_pos:bool = false;
 }
 root_type ThingData;
