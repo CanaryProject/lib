@@ -45,6 +45,11 @@ namespace CanaryLib {
         spdlog::debug("Calling FlatbuffersParser::parseError");
         spdlog::error("{}", error->message()->str());
       }
+
+      virtual void parseFloorData(const FloorData* floor) {
+        spdlog::debug("Calling FlatbuffersParser::parseFloorData");
+      }
+
       virtual void parseLoginData(const LoginData *login) {
         spdlog::debug("Calling FlatbuffersParser::parseLoginData");
       }

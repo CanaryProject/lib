@@ -54,6 +54,10 @@ namespace CanaryLib {
           parseError(content_msg->data()->GetAs<ErrorData>(i));
           break;
 
+        case DataType_FloorData:
+          parseFloorData(content_msg->data()->GetAs<FloorData>(i));
+          break;
+
         case DataType_LoginData:
           parseLoginData(content_msg->data()->GetAs<LoginData>(i));
           break;

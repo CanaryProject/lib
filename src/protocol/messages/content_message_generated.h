@@ -9,6 +9,7 @@
 #include "characters_list_data_generated.h"
 #include "creature_data_generated.h"
 #include "error_data_generated.h"
+#include "floor_data_generated.h"
 #include "general_structures_generated.h"
 #include "item_data_generated.h"
 #include "login_data_generated.h"
@@ -25,19 +26,21 @@ enum DataType {
   DataType_NONE = 0,
   DataType_CharactersListData = 1,
   DataType_ErrorData = 2,
-  DataType_LoginData = 3,
-  DataType_RawData = 4,
-  DataType_ThingData = 5,
-  DataType_TileData = 6,
+  DataType_FloorData = 3,
+  DataType_LoginData = 4,
+  DataType_RawData = 5,
+  DataType_ThingData = 6,
+  DataType_TileData = 7,
   DataType_MIN = DataType_NONE,
   DataType_MAX = DataType_TileData
 };
 
-inline const DataType (&EnumValuesDataType())[7] {
+inline const DataType (&EnumValuesDataType())[8] {
   static const DataType values[] = {
     DataType_NONE,
     DataType_CharactersListData,
     DataType_ErrorData,
+    DataType_FloorData,
     DataType_LoginData,
     DataType_RawData,
     DataType_ThingData,
@@ -47,10 +50,11 @@ inline const DataType (&EnumValuesDataType())[7] {
 }
 
 inline const char * const *EnumNamesDataType() {
-  static const char * const names[8] = {
+  static const char * const names[9] = {
     "NONE",
     "CharactersListData",
     "ErrorData",
+    "FloorData",
     "LoginData",
     "RawData",
     "ThingData",
@@ -76,6 +80,10 @@ template<> struct DataTypeTraits<CanaryLib::CharactersListData> {
 
 template<> struct DataTypeTraits<CanaryLib::ErrorData> {
   static const DataType enum_value = DataType_ErrorData;
+};
+
+template<> struct DataTypeTraits<CanaryLib::FloorData> {
+  static const DataType enum_value = DataType_FloorData;
 };
 
 template<> struct DataTypeTraits<CanaryLib::LoginData> {
@@ -174,6 +182,10 @@ inline bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, Dat
     }
     case DataType_ErrorData: {
       auto ptr = reinterpret_cast<const CanaryLib::ErrorData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case DataType_FloorData: {
+      auto ptr = reinterpret_cast<const CanaryLib::FloorData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case DataType_LoginData: {

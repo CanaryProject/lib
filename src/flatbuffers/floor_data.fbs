@@ -1,0 +1,9 @@
+include "tile_data.fbs";
+include "general_structures.fbs";
+
+namespace CanaryLib;
+
+table FloorData {
+	tiles:[TileData];
+}
+root_type FloorData;

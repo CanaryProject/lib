@@ -1,5 +1,6 @@
 include "creature_data.fbs";
 include "item_data.fbs";
+include "general_structures.fbs";
 
 namespace CanaryLib;
 
