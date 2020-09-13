@@ -14,6 +14,7 @@
 #include "login_data_generated.h"
 #include "raw_data_generated.h"
 #include "thing_data_generated.h"
+#include "tile_data_generated.h"
 
 namespace CanaryLib {
 
@@ -27,37 +28,40 @@ enum DataType {
   DataType_LoginData = 3,
   DataType_RawData = 4,
   DataType_ThingData = 5,
+  DataType_TileData = 6,
   DataType_MIN = DataType_NONE,
-  DataType_MAX = DataType_ThingData
+  DataType_MAX = DataType_TileData
 };
 
-inline const DataType (&EnumValuesDataType())[6] {
+inline const DataType (&EnumValuesDataType())[7] {
   static const DataType values[] = {
     DataType_NONE,
     DataType_CharactersListData,
     DataType_ErrorData,
     DataType_LoginData,
     DataType_RawData,
-    DataType_ThingData
+    DataType_ThingData,
+    DataType_TileData
   };
   return values;
 }
 
 inline const char * const *EnumNamesDataType() {
-  static const char * const names[7] = {
+  static const char * const names[8] = {
     "NONE",
     "CharactersListData",
     "ErrorData",
     "LoginData",
     "RawData",
     "ThingData",
+    "TileData",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameDataType(DataType e) {
-  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_ThingData)) return "";
+  if (flatbuffers::IsOutRange(e, DataType_NONE, DataType_TileData)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesDataType()[index];
 }
@@ -84,6 +88,10 @@ template<> struct DataTypeTraits<CanaryLib::RawData> {
 
 template<> struct DataTypeTraits<CanaryLib::ThingData> {
   static const DataType enum_value = DataType_ThingData;
+};
+
+template<> struct DataTypeTraits<CanaryLib::TileData> {
+  static const DataType enum_value = DataType_TileData;
 };
 
 bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, DataType type);
@@ -178,6 +186,10 @@ inline bool VerifyDataType(flatbuffers::Verifier &verifier, const void *obj, Dat
     }
     case DataType_ThingData: {
       auto ptr = reinterpret_cast<const CanaryLib::ThingData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case DataType_TileData: {
+      auto ptr = reinterpret_cast<const CanaryLib::TileData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

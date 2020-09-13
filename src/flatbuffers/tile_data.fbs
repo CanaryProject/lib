@@ -1,0 +1,19 @@
+include "creature_data.fbs";
+include "item_data.fbs";
+
+namespace CanaryLib;
+
+table TileData {
+	pos:Position;
+
+	local_player:CreatureData;
+	creatures:[CreatureData];
+
+	ground:ItemData;
+	bottom_items:[ItemData];
+	top_items:[ItemData];
+
+	is_central:bool = false;
+	clean:bool = true;
+}
+root_type TileData;

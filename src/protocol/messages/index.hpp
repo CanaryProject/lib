@@ -36,5 +36,6 @@
 #include "login_data_generated.h"
 #include "raw_data_generated.h"
 #include "thing_data_generated.h"
+#include "tile_data_generated.h"
 
 #endif
