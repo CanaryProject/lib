@@ -65,6 +65,10 @@ namespace CanaryLib {
         case DataType_ThingData:
           parseThingData(content_msg->data()->GetAs<ThingData>(i));
           break;
+
+        case DataType_TileData:
+          parseTileData(content_msg->data()->GetAs<TileData>(i));
+          break;
         
         case DataType_NONE:
         default:
